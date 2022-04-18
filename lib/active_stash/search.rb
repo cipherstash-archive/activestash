@@ -57,6 +57,10 @@ module ActiveStash
       def collection_name
         @collection_name || table_name
       end
+
+      def stash_indexes
+        @stash_indexes ||= StashIndexes.new(self).build!
+      end
     end
   end
 end

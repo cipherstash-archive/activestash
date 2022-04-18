@@ -14,21 +14,24 @@ module ActiveStash
     # created with a "_match" suffix (e.g. "email_match")
     #
     def build
-      fields.inject({}) do |schema, (field, type)|
-        case type
-          when :text, :string
-            string_index!(schema, field)
+      new_schema.tap do |schema|
+        fields.inject(schema[:indexes]) do |indexes, (field, type)|
+          case type
+            when :text, :string
+              string_index!(indexes, field)
 
-          when :timestamp, :date, :datetime, :float, :decimal, :integer
-            range_index!(schema, field)
+            when :timestamp, :date, :datetime, :float, :decimal, :integer
+              range_index!(indexes, field)
 
-          when :boolean
-            exact_index!(schema, field)
+            when :boolean
+              exact_index!(indexes, field)
 
-          when :binary
-            STDERR.puts "Warning: ignoring field '#{field}' which has type binary as index type cannot be implied"
+            when :binary
+              STDERR.puts "Warning: ignoring field '#{field}' which has type binary as index type cannot be implied"
+          end
+
+          indexes
         end
-        schema
       end
     end
 
@@ -41,6 +44,36 @@ module ActiveStash
     end
 
     private
+    def new_schema
+      {
+        type: stash_type,
+        indexes: {}
+      }
+    end
+
+    def stash_type
+      fields.inject({}) do |attrs, (field,type)|
+        case type
+          when :text, :string
+            attrs[field] = :string
+
+          when :timestamp, :date, :datetime
+            attrs[field] = :date
+
+          when :float, :decimal
+            attrs[field] = :float64
+
+          when :integer
+            attrs[field] = :uint64
+
+          when :boolean
+            attrs[field] = :boolean
+          end
+
+        attrs
+      end
+    end
+
     def handle_encrypted_types(fields)
       if @model.respond_to?(:lockbox_attributes)
         @model.lockbox_attributes.each do |(attr, settings)|
@@ -63,13 +96,13 @@ module ActiveStash
     # Should we use dynamics?
     def string_index!(schema, name)
       exact_index!(schema, name)
-      match_index!(schema, "#{name}_match")
+      match_index!(schema, name)
 
       schema
     end
 
     def match_index!(schema, name)
-      schema[name] = {
+      schema["#{name}_match"] = {
         kind: "match",
         fields: [name],
         tokenFilters: [

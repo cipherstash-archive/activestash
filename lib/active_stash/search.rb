@@ -3,6 +3,7 @@ module ActiveStash
   module Search
     def self.included(base)
       base.extend ClassMethods
+
       base.class_eval do
         before_save :ensure_stash_id
         after_save :cs_put
@@ -15,6 +16,7 @@ module ActiveStash
     end
 
     def cs_put
+      # TODO: Include Logging module which uses the Rails logger if defined
       puts "Indexing #{self.stash_id}"
       self.class.collection.put(self.stash_id, self)
     end
@@ -26,7 +28,15 @@ module ActiveStash
     module ClassMethods
       attr_writer :collection_name
 
-      def search(field, condition, value, order = nil)
+      def is_stash_model?
+        true
+      end
+
+      def query(str = nil, opts = {}, &block)
+        QueryDSL.new().build_query(str, opts, &block)
+      end
+
+      def query_orig(field, condition, value, order = nil)
         ids = collection.query(field, condition, value, order)
         relation = where(stash_id: ids)
 

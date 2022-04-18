@@ -32,8 +32,8 @@ module ActiveStash
         true
       end
 
-      def query(str = nil, opts = {}, &block)
-        QueryDSL.new().build_query(str, opts, &block)
+      def query(*args, &block)
+        QueryDSL.new(self).build_query(*args, &block).validate!
       end
 
       def query_orig(field, condition, value, order = nil)

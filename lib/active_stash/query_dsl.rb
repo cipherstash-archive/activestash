@@ -1,17 +1,5 @@
 module ActiveStash
   class QueryDSL
-    class Query
-      attr_accessor :order
-
-      def initialize
-        @constraints = {}
-      end
-
-      def add_constraint(hash)
-        @constraints.merge!(hash)
-      end
-    end
-
     class ConstraintHelper
       OPS = [:lt, :lte, :gt, :gte, :eq]
 
@@ -32,20 +20,46 @@ module ActiveStash
       end
     end
 
-    def build_query(str = nil, opts = {})
-      Query.new().tap do |payload|
-        payload.add_constraint(all: str) if str
-        payload.add_constraint(opts[:where]) if opts[:where]
-        payload.order = opts[:order] if opts[:order]
+    def initialize(model)
+      @model = model
+      @constraints = {}
+    end
 
-        if block_given?
-          payload.add_constraint(yield ConstraintHelper.new)
+    def build_query(*args)
+      str, opts =
+        if args.length == 2
+          args
+        elsif args.length <= 1
+          [nil, args[0] || {}]
+        else
+          raise NameError, "build_query must take 1 or 2 arguments"
+        end
+
+      @constraints.merge!(all: str) if str
+      @constraints.merge!(opts[:where]) if opts[:where]
+      @order = opts[:order] if opts[:order]
+
+      if block_given?
+        @constraints.merge!(yield ConstraintHelper.new)
+      end
+
+      self
+    end
+
+    def validate!
+      @constraints.each do |(field, condition)|
+        op = condition.instance_of?(Hash) ? condition[:op] : :eq
+        indexes_for_field = @model.stash_indexes.on(field)
+        valid_indexes = indexes_for_field.detect do |index|
+          index.valid_op?(op)
+        end
+
+        unless field == :all # FIXME: Remove this and make sure an all index has been generated
+          raise "No valid indexes for query on #{field} (#{condition})" unless valid_indexes
         end
       end
 
-
-
-      #yield self if block_given?
+      self
     end
   end
 end

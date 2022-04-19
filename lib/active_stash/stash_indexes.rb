@@ -73,7 +73,7 @@ module ActiveStash
             [Index.exact(field)]
 
           when :binary
-            ActiveStash::Logger.warn("Warning: ignoring field '#{field}' which has type binary as index type cannot be implied")
+            ActiveStash::Logger.warn("ignoring field '#{field}' which has type binary as index type cannot be implied")
         end
       end
 

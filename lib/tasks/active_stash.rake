@@ -31,5 +31,23 @@ namespace :active_stash do
       stash("create-collection #{collection_name} --schema #{schema}")
     end
   end 
+
+  desc "Reindex the CipherStash collection for the given model"
+  task(:reindex, [:name] => :environment) do |task, args|
+    model = args[:name].constantize
+    model.reindex
+  end
+
+  desc "Reindex all CipherStash collections (this may take some time!)"
+  task(:reindexall => :environment) do
+    Dir.glob("#{Rails.root}/app/models/*.rb").each { |file| require file }
+    p ActiveRecord::Base.descendants
+    ActiveRecord::Base.descendants.select { |m|
+      m.respond_to?(:is_stash_model?)
+    }.each do |model|
+      ActiveStash::Logger.info("Reindexing #{model.collection_name}...")
+      model.reindex
+    end
+  end
 end
 

@@ -16,8 +16,7 @@ module ActiveStash
     end
 
     def cs_put
-      # TODO: Include Logging module which uses the Rails logger if defined
-      puts "Indexing #{self.stash_id}"
+      ActiveStash::Logger.info("Indexing #{self.stash_id}")
       self.class.collection.put(self.stash_id, self)
     end
 

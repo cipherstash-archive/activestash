@@ -37,12 +37,12 @@ module ActiveStash
       end
 
       def query(*args, &block)
-        query = QueryDSL.new(self).build_query(*args, &block)
+        query = Query.build_query(self, *args, &block)
 
         # Map our "higher-level" DSL to ruby-client
         ids = collection.query { |q|
-          query.fields.each do |field|
-            q.add_constraint(field.index.name, field.op.to_s, field.value)
+          query.constraints.each do |constraint|
+            q.add_constraint(constraint.index.name, constraint.op.to_s, constraint.value)
           end
         }.records.map(&:id)
 
@@ -58,7 +58,6 @@ module ActiveStash
       end
 
       def collection
-        # TODO: Pass the logger option
         @collection ||= CipherStash::Client.new(logger: ActiveStash::Logger.instance).collection(collection_name)
       end
 

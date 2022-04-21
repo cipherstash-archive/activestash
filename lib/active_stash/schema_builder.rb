@@ -59,10 +59,10 @@ module ActiveStash
       end
     end
 
-    def match_index!(schema, name)
-      schema["#{name}_match"] = {
+    def match_index!(schema, index)
+      schema[index.name] = {
         kind: "match",
-        fields: [name],
+        fields: Array(index.field),
         tokenFilters: [
           { kind: "downcase" },
           { kind: "ngram", tokenLength: 3 }
@@ -73,14 +73,14 @@ module ActiveStash
       schema
     end
 
-    def range_index!(schema, name)
-      schema[name] = { kind: "range", field: name }
+    def range_index!(schema, index)
+      schema[index.name] = { kind: "range", field: index.field }
 
       schema
     end
 
-    def exact_index!(schema, name)
-      schema[name] = { kind: "exact", field: name }
+    def exact_index!(schema, index)
+      schema[index.name] = { kind: "exact", field: index.field }
 
       schema
     end

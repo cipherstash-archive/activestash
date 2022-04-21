@@ -1,23 +1,27 @@
 module ActiveStash
   class Index
-    attr_accessor :field, :type, :valid_ops
+    attr_accessor :type, :valid_ops
+    attr_reader :field
+    attr_reader :name
 
     RANGE_TYPES = [:timestamp, :date, :datetime, :float, :decimal, :integer]
     MATCH_TYPES = [:text, :string]
     RANGE_OPS = [:lt, :lte, :gt, :gte, :eq, :between]
 
-    def initialize(field)
+    def initialize(field, name = field)
       @field = field
+      @name = name
     end
 
     def self.exact(field)
       new(field).tap do |index|
         index.type = :exact
+        index.valid_ops = [:eq]
       end
     end
 
     def self.match(field)
-      new(field).tap do |index|
+      new(field, "#{field}_match").tap do |index|
         index.type = :match
         index.valid_ops = [:match]
       end
@@ -37,7 +41,7 @@ module ActiveStash
     end
 
     def valid_op?(op)
-      @type == :exact || valid_ops.include?(op)
+      valid_ops.include?(op)
     end
   end
 

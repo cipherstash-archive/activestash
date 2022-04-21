@@ -17,7 +17,12 @@ module ActiveStash
 
     def cs_put
       ActiveStash::Logger.info("Indexing #{self.stash_id}")
-      self.class.collection.put(self.stash_id, self)
+
+      self.class.collection.upsert(
+        self.stash_id,
+        self.attributes,
+        store_record: false
+      )
     end
 
     def cs_delete
@@ -32,23 +37,29 @@ module ActiveStash
       end
 
       def query(*args, &block)
-        QueryDSL.new(self).build_query(*args, &block).validate!
-      end
+        query = QueryDSL.new(self).build_query(*args, &block)
 
-      def query_orig(field, condition, value, order = nil)
-        ids = collection.query(field, condition, value, order)
+        # Map our "higher-level" DSL to ruby-client
+        ids = collection.query { |q|
+          query.fields.each do |field|
+            q.add_constraint(field.index.name, field.op.to_s, field.value)
+          end
+        }.records.map(&:id)
+
         relation = where(stash_id: ids)
-
-        # Ensure that stash ordering is maintained when hydrating
-        order ? relation.in_order_of(:stash_id, ids) : relation
+        # TODO: Ordering
+        #order ? relation.in_order_of(:stash_id, ids) : relation
+        relation
       end
 
       def reindex
         find_each(&:save!)
+        true
       end
 
       def collection
-        @collection ||= ActiveStash::Stash.connect(collection_name)
+        # TODO: Pass the logger option
+        @collection ||= CipherStash::Client.new(logger: ActiveStash::Logger.instance).collection(collection_name)
       end
 
       # Name of the Stash collection

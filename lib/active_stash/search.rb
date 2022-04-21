@@ -32,24 +32,16 @@ module ActiveStash
     module ClassMethods
       attr_writer :collection_name
 
+      def default_scope
+        StashRelation.new(self)
+      end
+
       def is_stash_model?
         true
       end
 
       def query(*args, &block)
-        query = Query.build_query(self, *args, &block)
-
-        # Map our "higher-level" DSL to ruby-client
-        ids = collection.query { |q|
-          query.constraints.each do |constraint|
-            q.add_constraint(constraint.index.name, constraint.op.to_s, constraint.value)
-          end
-        }.records.map(&:id)
-
-        relation = where(stash_id: ids)
-        # TODO: Ordering
-        #order ? relation.in_order_of(:stash_id, ids) : relation
-        relation
+        StashRelation.new(self).query(*args, &block)
       end
 
       def reindex

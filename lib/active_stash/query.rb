@@ -1,10 +1,60 @@
 module ActiveStash
+  # TODO: Only use this if Rails is loaded
+  class StashRelation < ::ActiveRecord::Relation
+    def query(*args, &block)
+      @query = Query.build_query(@klass, *args, &block)
+      self
+    end
+
+    def where(*args)
+      if @query
+        ActiveStash::Logger.warn("Where clause ignored as query was used instead")
+      end
+      super
+    end
+
+    def limit(value)
+      @limit = value
+      self
+    end
+
+    def order(*args)
+      # @query.order = 
+      self
+    end
+
+    def offset(value)
+      @offset = value
+      self
+    end
+
+    def load
+      if @query
+        # Call stash ruby client low-level API
+        ids = @klass.collection.query(limit: @limit, offset: @offset) do |q|
+          @query.constraints.each do |constraint|
+            q.add_constraint(constraint.index.name, constraint.op.to_s, constraint.value)
+          end
+        end.records.map(&:id)
+        
+        # TODO
+        #order ? relation.in_order_of(:stash_id, ids) : relation
+        @records = @klass.where(stash_id: ids)
+        @loaded = true
+      else
+        super
+      end
+    end
+  end
+
   # Query DSL
   #
   # @private
   class Query
     attr_accessor :constraints
     attr_accessor :order
+    attr_accessor :limit
+    attr_accessor :offset
 
     # Build a query for the given model
     def self.build_query(model, *args)

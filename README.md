@@ -158,7 +158,7 @@ class User < ActiveRecord::Base
 end
 ```
 
-== Setting a Default Scope
+## Setting a Default Scope
 
 If you plan to use encrypted queries for all the data in your model, you can set a default scope:
 

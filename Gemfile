@@ -5,4 +5,4 @@ gemspec
 
 gem "rake", "~> 12.0"
 gem "rspec", "~> 3.0"
-gem "cipherstash-client", path: "/home/dan/Data/projects/CipherStash/ruby-client"
+gem "cipherstash-client", path: "/Users/dan/Projects/CipherStash/ruby-client"

@@ -6,6 +6,8 @@ require "active_stash/stash_indexes"
 require "active_stash/logger"
 require "active_stash/railtie" if defined?(Rails::Railtie)
 
+require "cipherstash/client"
+
 module ActiveStash
   class Error < StandardError; end
 end

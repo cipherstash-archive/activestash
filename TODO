@@ -1,0 +1,23 @@
+* Config
+ - workspace or profile
+ - keys etc
+ - Add a config option to namespace collections
+ - production settings
+
+* Uniqueness validations
+
+* Collection Schema
+   - Detect changes and reindex (needs backend change)
+
+* Rake tasks
+ - list/delete use stash.rb
+
+* Queries
+ - Range queries
+   - between
+ - Ordering
+ - String ordering
+ - "all" index
+ - check that chaining to create etc still works
+
+

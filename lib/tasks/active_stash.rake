@@ -41,7 +41,6 @@ namespace :active_stash do
   desc "Reindex all CipherStash collections (this may take some time!)"
   task(:reindexall => :environment) do
     Dir.glob("#{Rails.root}/app/models/*.rb").each { |file| require file }
-    p ActiveRecord::Base.descendants
     ActiveRecord::Base.descendants.select { |m|
       m.respond_to?(:is_stash_model?)
     }.each do |model|

@@ -2,7 +2,8 @@
 
 ActiveStash is the Rails specific gem for using CipherStash.
 It provides search functionality for ActiveRecord models
-that are configured to use field level encryption (using Lockbox or EncryptedRecord).
+that are configured to use field level encryption (using [Lockbox](https://github.com/ankane/lockbox) or
+[EncryptedRecord](https://guides.rubyonrails.org/active_record_encryption.html)).
 When records are created or updated, they are indexed into a CipherStash collection
 which can be queried via an ActiveStash::Relation.
 
@@ -17,7 +18,6 @@ Add this line to your applications Gemfile:
 
     gem 'activestash'
 
-
 And then execute:
 
     $ bundle install
@@ -27,6 +27,11 @@ To use, include ActiveStash::Search in a model:
 ```ruby
 class User < ActiveRecord::Base
   include ActiveStash::Search
+
+  # fields encrypted with EncryptedRecord
+  encrypts :name
+  encrypts :email
+  encrypts :dob
 
   # ...the rest of your code
 end

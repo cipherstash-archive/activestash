@@ -32,9 +32,10 @@ module ActiveStash
     module ClassMethods
       attr_writer :collection_name
 
-      def default_scope
-        StashRelation.new(self)
-      end
+      # FIXME: A bunch of things break when we use this as a default scope
+      #def default_scope
+      #  StashRelation.new(self)
+      #end
 
       def is_stash_model?
         true

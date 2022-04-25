@@ -1,25 +1,74 @@
 module ActiveStash
-  # TODO: Only use this if Rails is loaded
+  module RelationCompatability
+    def self.included(base)
+      base.extend ClassMethods
+    end
+
+    def unsupported!(method_name)
+      # TODO: Use a proper class
+      raise "'#{method_name}' is unsupported when used with encrypted queries or sorts"
+    end
+
+    module ClassMethods
+      def stash_wrap(*names)
+        names.each do |name|
+          define_method(name) do |*args|
+            @scope = @scope.send(name, *args)
+            self
+          end
+        end
+      end
+
+      def stash_unsupported(*names)
+        names.each do |name|
+          define_method(name) do |*args|
+            if stash_query?
+              unsupported!(name)
+            else
+              super
+            end
+          end
+        end
+      end
+    end
+  end
+
   class StashRelation < ::ActiveRecord::Relation
+    include RelationCompatability
+
+    stash_wrap(:select, :all)
+    stash_unsupported(:where)
+
+    def initialize(model)
+      @klass = model
+      @scope = model
+    end
+
     def query(*args, &block)
       @query = Query.build_query(@klass, *args, &block)
       self
     end
 
-    def where(*args)
-      if @query
-        ActiveStash::Logger.warn("Where clause ignored as query was used instead")
+    def _where(*args)
+      if stash_query?
+        unsupported!(__method__)
+      else
+        super
       end
-      super
+    end
+
+    def count(_column_name = nil)
+      if loaded?
+        @records.size
+      else
+        # TODO: Make this include an aggregate on stash or just count
+        puts "Calling count"
+        10
+      end
     end
 
     def limit(value)
       @limit = value
-      self
-    end
-
-    def order(*args)
-      # @query.order = 
       self
     end
 
@@ -28,21 +77,73 @@ module ActiveStash
       self
     end
 
+    def first
+      if stash_query?
+        limit(1)
+        self.load[0]
+      else
+        super
+      end
+    end
+
+    def last(n = nil)
+      if stash_query?
+        n ? self.load.last(n) : self.load.last
+      else
+        super
+      end
+    end
+
+    def order(*args)
+      @stash_order = process_order_args(*args)
+      self
+    end
+
     def load
-      if @query
+      if stash_query?
+        return @records if @loaded
+
         # Call stash ruby client low-level API
         ids = @klass.collection.query(limit: @limit, offset: @offset) do |q|
+          (@stash_order || []).each do |ordering|
+            q.order_by(ordering[:index_name], ordering[:direction])
+          end
+
           @query.constraints.each do |constraint|
             q.add_constraint(constraint.index.name, constraint.op.to_s, constraint.value)
           end
         end.records.map(&:id)
         
-        # TODO
-        #order ? relation.in_order_of(:stash_id, ids) : relation
-        @records = @klass.where(stash_id: ids)
+        relation = @scope.where(stash_id: ids)
+        relation = relation.in_order_of(:stash_id, ids) if @stash_order
         @loaded = true
+        @records = relation.load
       else
         super
+      end
+    end
+
+    def stash_query?
+      @query || @stash_order
+    end
+
+    protected
+    def process_order_args(*args)
+      args.flat_map do |field_or_hash|
+        if Hash === field_or_hash
+          field_or_hash.map do |(field, direction)|
+            range_index = @klass.stash_indexes.on(field.to_s).find do |index|
+              index.type == :range
+            end
+
+            if range_index.nil?
+              raise "Unable to order by '#{field}' as there are no range indexes defined for it"
+            end
+            { index_name: range_index.name, direction: direction.upcase.to_sym }
+          end
+        else
+          process_order_args(field_or_hash => :ASC)
+        end
       end
     end
   end
@@ -51,36 +152,28 @@ module ActiveStash
   #
   # @private
   class Query
-    attr_accessor :constraints
-    attr_accessor :order
-    attr_accessor :limit
-    attr_accessor :offset
+    attr_reader :constraints
+
+    def initialize(constraints)
+      @constraints = constraints
+    end
 
     # Build a query for the given model
-    def self.build_query(model, *args)
+    def self.build_query(model, constraint = {})
       collector = Collector.new(model.stash_indexes)
 
-      str, opts =
-        case args.length
-          when 2 then args
-          when 1 then String === args[0] ? [args[0], {}] : [nil, args[0]]
-          when 0 then [nil, {}]
-        else
-          raise NameError, "build_query must take 0, 1 or 2 arguments"
-        end
-
-      #TODO: @constraints.merge!(all: str) if str
-      collector.add_hash(opts[:where]) if opts[:where]
-      order = opts[:order] if opts[:order]
+      case constraint
+        when Hash
+          collector.add_hash(constraint)
+        when String
+          constraints.add_hash(all: constraint)
+      end
 
       if block_given?
         yield collector
       end
 
-      new.tap do |query|
-        query.constraints = collector.fields
-        query.order = order
-      end
+      new(collector.fields)
     end
 
     class Collector < BasicObject
@@ -170,7 +263,7 @@ module ActiveStash
 
       # Failsafe to munge types into a type we want
       def maybe_cast(value)
-        if defined?(::ActiveSupport::TimeWithZone && ::ActiveSupport::TimeWithZone === value)
+        if defined?(::ActiveSupport::TimeWithZone) && ::ActiveSupport::TimeWithZone === value
           value.to_time
         else
           value

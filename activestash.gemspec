@@ -19,6 +19,10 @@ Gem::Specification.new do |spec|
   spec.metadata["changelog_uri"] = "https://github.com/cipherstash/activestash/CHANGELOG.md"
 
   spec.add_runtime_dependency "cipherstash-client"
+  spec.add_runtime_dependency "activerecord"
+
+  spec.add_development_dependency 'pg'
+  spec.add_development_dependency 'factory_bot', '~> 6.2', '>= 6.2.1'
 
   spec.files = Dir["CHANGELOG.md", "MIT-LICENSE", "README.rdoc", "lib/**/*"]
   spec.bindir        = "exe"

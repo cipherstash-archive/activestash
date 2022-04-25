@@ -1,6 +1,6 @@
-# Activestash
+# ActiveStash
 
-ActiveStash is the Rails specific gem for using CipherStash.
+ActiveStash is the Rails specific gem for using [CipherStash](https://cipherstash.com).
 It provides search functionality for ActiveRecord models
 that are configured to use field level encryption (using [Lockbox](https://github.com/ankane/lockbox) or
 [EncryptedRecord](https://guides.rubyonrails.org/active_record_encryption.html)).

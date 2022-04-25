@@ -1,9 +1,5 @@
-RSpec.describe Activestash do
+RSpec.describe ActiveStash do
   it "has a version number" do
-    expect(Activestash::VERSION).not_to be nil
-  end
-
-  it "does something useful" do
-    expect(false).to eq(true)
+    expect(ActiveStash::VERSION).not_to be nil
   end
 end

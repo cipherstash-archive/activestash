@@ -5,7 +5,8 @@ module ActiveStash
     include ActiveStash::RelationHelp::Compatability
 
     stash_wrap(:select, :all)
-    stash_unsupported(:where)
+    # TODO: Add count aggregate support
+    stash_unsupported(:where, :count)
 
     def initialize(model)
       @klass = model
@@ -15,24 +16,6 @@ module ActiveStash
     def query(*args, &block)
       @query = QueryBuilder.build_query(@klass, *args, &block)
       self
-    end
-
-    def _where(*args)
-      if stash_query?
-        unsupported!(__method__)
-      else
-        super
-      end
-    end
-
-    def count(_column_name = nil)
-      if loaded?
-        @records.size
-      else
-        # TODO: Make this include an aggregate on stash or just count
-        puts "Calling count"
-        10
-      end
     end
 
     def limit(value)

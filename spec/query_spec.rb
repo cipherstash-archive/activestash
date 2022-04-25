@@ -3,7 +3,7 @@ require_relative "support/migrations/create_users"
 require 'rake'
 load "tasks/active_stash.rake"
 
-RSpec.describe ActiveStash::Query do
+RSpec.describe ActiveStash::Search do
   before(:all) do
     ActiveRecord::Base.establish_connection(
       adapter: 'postgresql',

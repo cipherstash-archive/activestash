@@ -6,6 +6,8 @@
 
 * Uniqueness validations
 
+* Document and test the "all" index option
+
 * Collection Schema
    - Detect changes and reindex (needs backend change)
 

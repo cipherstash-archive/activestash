@@ -34,6 +34,7 @@ namespace :active_stash do
   desc "Reindex the CipherStash collection for the given model"
   task(:reindex, [:name] => :environment) do |task, args|
     model = args[:name].constantize
+    info("Reindexing model: '#{args[:name]}' (collection: '#{model.collection_name}')")
     model.reindex
   end
 

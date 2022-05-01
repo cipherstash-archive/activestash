@@ -5,7 +5,6 @@ module ActiveStash
     attr_reader :name
 
     RANGE_TYPES = [:timestamp, :date, :datetime, :float, :decimal, :integer]
-    MATCH_TYPES = [:text, :string]
     RANGE_OPS = [:lt, :lte, :gt, :gte, :eq, :between]
 
     def initialize(field, name = field)
@@ -28,15 +27,9 @@ module ActiveStash
     end
 
     def self.range(field)
-      new(field).tap do |index|
+      new(field, "#{field}_range").tap do |index|
         index.type = :range
         index.valid_ops = RANGE_OPS
-      end
-    end
-
-    def self.ordering(field)
-      new(field).tap do |index|
-        index.type = :ordering
       end
     end
 
@@ -64,14 +57,14 @@ module ActiveStash
     def build!
       @indexes = fields.flat_map do |(field, type)|
         case type
-          when *Index::MATCH_TYPES
-            [Index.exact(field), Index.match(field)]
-
-          when :string
-            [Index.ordering(field)]
-
           when *Index::RANGE_TYPES
             [Index.range(field)]
+
+          # TODO: Probably shouldn't do range types on text
+          # but AR Encrypted record treats all strings as :text
+          when :string, :text
+            # Special case!
+            [Index.exact(field), Index.match(field), Index.range(field)]
 
           when :boolean
             [Index.exact(field)]

@@ -18,21 +18,18 @@ module ActiveStash
         @model.stash_indexes.all.each do |index|
           case index.type
             when :exact
-              exact_index!(indexes, index.field)
+              exact_index!(indexes, index)
 
             when :match
-              match_index!(indexes, index.field)
+              match_index!(indexes, index)
 
             when :range
-              range_index!(indexes, index.field)
-
-            #when :ordering
-            #  ordering_index!(schema.indexes, "#{index.field}_ordering")
+              range_index!(indexes, index)
           end
         end
       end
     
-      {indexes: indexes, type: stash_type}
+      {"indexes" => indexes, "type" => stash_type}
     end
 
     private
@@ -40,19 +37,19 @@ module ActiveStash
       @model.stash_indexes.fields.inject({}) do |attrs, (field,type)|
         case type
           when :text, :string
-            attrs[field] = :string
+            attrs[field] = "string"
 
           when :timestamp, :date, :datetime
-            attrs[field] = :date
+            attrs[field] = "date"
 
           when :float, :decimal
-            attrs[field] = :float64
+            attrs[field] = "float64"
 
           when :integer
-            attrs[field] = :uint64
+            attrs[field] = "uint64"
 
           when :boolean
-            attrs[field] = :boolean
+            attrs[field] = "boolean"
           end
 
         attrs
@@ -61,26 +58,32 @@ module ActiveStash
 
     def match_index!(schema, index)
       schema[index.name] = {
-        kind: "match",
-        fields: Array(index.field),
-        tokenFilters: [
-          { kind: "downcase" },
-          { kind: "ngram", tokenLength: 3 }
+        "kind" => "match",
+        "fields" => Array(index.field),
+        "tokenFilters" => [
+          { "kind" => "downcase" },
+          { "kind" => "ngram", "tokenLength" => 3 }
         ],
-        tokenizer: { kind: "standard" }
+        "tokenizer" => { "kind" => "standard" }
       }
 
       schema
     end
 
     def range_index!(schema, index)
-      schema[index.name] = { kind: "range", field: index.field }
+      schema[index.name] = {
+        "kind" => "range",
+        "field" => index.field
+      }
 
       schema
     end
 
     def exact_index!(schema, index)
-      schema[index.name] = { kind: "exact", field: index.field }
+      schema[index.name] = {
+        "kind" => "exact",
+        "field" => index.field
+      }
 
       schema
     end

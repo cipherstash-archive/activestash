@@ -25,6 +25,9 @@ module ActiveStash
 
             when :range
               range_index!(indexes, index)
+
+            when :dynamic_match
+              dynamic_match!(indexes, index)
           end
         end
       end
@@ -86,6 +89,17 @@ module ActiveStash
       }
 
       schema
+    end
+
+    def dynamic_match!(schema, index)
+      schema[index.name] = {
+        "kind" => "dynamic-match",
+        "tokenFilters" => [
+          { "kind" => "downcase" },
+          { "kind" => "ngram", "tokenLength" => 3 }
+        ],
+        "tokenizer" => { "kind" => "standard" }
+      }
     end
   end
 end

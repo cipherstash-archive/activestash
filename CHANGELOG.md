@@ -7,9 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0]
+
+### Added
+
+* Added support for [dynamic-match](https://docs.cipherstash.com/reference/index-types/dynamicmatch.html) indexes
+* Free-text queries across all strings using `query(str)`
+
 ## [0.1.2]
 
-## Changed
+### Changed
 
 Indexing now ignores `json`, `jsonb` and `uuid` types. These may be added later.
 

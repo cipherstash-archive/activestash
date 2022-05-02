@@ -17,7 +17,7 @@ module ActiveStash
         when Hash
           collector.add_hash(constraint)
         when String
-          constraints.add_hash(all: constraint)
+          collector.all =~ constraint
       end
 
       if block_given?
@@ -59,7 +59,7 @@ module ActiveStash
       def initialize(name, available_indexes)
         @name = name
         @available_indexes = available_indexes
-        raise "No indexes available for '#{name}'" if @available_indexes.empty?
+        ::Kernel.raise "No indexes available for '#{name}'" if @available_indexes.empty?
       end
 
       def inspect

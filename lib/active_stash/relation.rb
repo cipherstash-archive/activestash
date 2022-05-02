@@ -61,7 +61,11 @@ module ActiveStash
           end
 
           @query.constraints.each do |constraint|
-            q.add_constraint(constraint.index.name, constraint.op.to_s, constraint.value)
+            q.add_constraint(
+              constraint.index.name,
+              constraint.op.to_s,
+              constraint.value
+            )
           end
         end.records.map(&:id)
         

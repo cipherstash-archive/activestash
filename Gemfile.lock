@@ -3,7 +3,7 @@ PATH
   specs:
     active_stash (0.1.2)
       activerecord
-      cipherstash-client
+      cipherstash-client (>= 0.3.0)
 
 GEM
   remote: https://rubygems.org/
@@ -31,7 +31,7 @@ GEM
     aws-sigv4 (1.5.0)
       aws-eventstream (~> 1, >= 1.0.2)
     cbor (0.5.9.6)
-    cipherstash-client (0.2.1)
+    cipherstash-client (0.3.0)
       aws-sdk-core (~> 3.0)
       aws-sdk-kms (~> 1.0)
       cbor (~> 0.5.9.6)

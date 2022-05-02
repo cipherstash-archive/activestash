@@ -33,6 +33,13 @@ module ActiveStash
       end
     end
 
+    def self.dynamic_match(field)
+      new(field, "#{field}_dynamic_match").tap do |index|
+        index.type = :dynamic_match
+        index.valid_ops = [:match]
+      end
+    end
+
     def valid_op?(op)
       valid_ops.include?(op)
     end
@@ -74,6 +81,8 @@ module ActiveStash
             []
         end
       end
+
+      @indexes << Index.dynamic_match("all")
 
       self
     end

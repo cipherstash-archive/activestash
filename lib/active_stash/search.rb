@@ -23,9 +23,8 @@ module ActiveStash # :nodoc:
   #
   # == Running Queries
   #
-  # To perform queries over your encrypted records, you can use the <tt>query</tt> method
+  # To perform queries over your encrypted records, you can use the `query` method
   # For example, to find a user by email address:
-  #
   #
   #     User.query(email: "person@example.com")
   #
@@ -36,9 +35,17 @@ module ActiveStash # :nodoc:
   #
   #     User.query(email: "person@example.com", verified: true)
   #
+  # You can perform a free-text search over all strings in the model by passing the query string as the first argument:
+  #
+  #     User.query("exam")
+  #
   # To order by `dob`, do:
   #
   #     User.query(email: "person@example.com).order(:dob)
+  #
+  # You can even order by strings:
+  #
+  #     User.query(verified: true).order(:first_name)
   #  
   # Or to use limit and offset:
   #
@@ -69,6 +76,12 @@ module ActiveStash # :nodoc:
   #       q.name =~ "Dan"
   #     end
   #
+  # To perform a free-text search with additional constraints:
+  #
+  #    User.query("myquery") do |q|
+  #      q.dob > "1998-01-01".to_date
+  #    end
+  #
   module Search
     def self.included(base)
       base.extend ClassMethods
@@ -90,7 +103,7 @@ module ActiveStash # :nodoc:
 
       self.class.collection.upsert(
         self.stash_id,
-        self.attributes,
+        self.serializable_hash(except: [self.class.primary_key, :stash_id]),
         store_record: false
       )
     end

@@ -55,7 +55,7 @@ namespace :active_stash do
       indexes = collection.instance_variable_get("@indexes")
 
       puts "-" * 54
-      puts ["field".center(20), "type".center(10), "indexes".center(20)].join("|")
+      puts ["field".center(20), "type".center(15), "indexes".center(20)].join("|")
       puts "-" * 54
       meta["recordType"].each do |(field, type)|
         index_types = indexes.select { |index|
@@ -65,8 +65,17 @@ namespace :active_stash do
           index.instance_variable_get("@settings")["mapping"]["kind"]
         }.join(", ")
 
-        puts [ " " + field.ljust(19), type.ljust(9), index_types].join("| ")
+        puts [ " " + field.ljust(19), type.ljust(14), index_types].join("| ")
       end
+
+      # Dynamic Indexes
+      indexes.select do |index|
+        mapping = index.instance_variable_get("@settings")["mapping"]
+        if mapping["kind"] == "dynamic-match"
+          puts [ " *".ljust(20), "dynamic-match".ljust(14), "all" ].join("| ") # TODO: actual index name
+        end
+      end
+
       puts "-" * 54
     rescue GRPC::NotFound
       error("No such collection")

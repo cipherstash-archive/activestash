@@ -66,11 +66,12 @@ module ActiveStash
             # Special case!
             [Index.exact(field), Index.match(field), Index.range(field)]
 
-          when :boolean
+          when :boolean, :uuid
             [Index.exact(field)]
 
-          when :binary
-            ActiveStash::Logger.warn("ignoring field '#{field}' which has type binary as index type cannot be implied")
+          else
+            ActiveStash::Logger.warn("ignoring field '#{field}' which has type #{type} as index type cannot be implied")
+            []
         end
       end
 
@@ -81,7 +82,7 @@ module ActiveStash
       fields = @model.attribute_types.inject({}) do |attrs, (k,v)|
         attrs.tap { |a| a[k] = v.type }
       end
-      
+
       handle_encrypted_types(fields)
     end
 

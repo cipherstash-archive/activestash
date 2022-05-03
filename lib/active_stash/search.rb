@@ -131,7 +131,7 @@ module ActiveStash # :nodoc:
 
       # Perform a query using the CipherStash collection indexes
       def query(*args, &block)
-        ::ActiveStash::Relation.new(self).query(*args, &block)
+        ::ActiveStash::Relation.new(current_scope || self).query(*args, &block)
       end
 
       # Reindex all records into CipherStash

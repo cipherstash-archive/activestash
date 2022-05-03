@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.metadata["source_code_uri"] = "https://github.com/cipherstash/activestash"
   spec.metadata["changelog_uri"] = "https://github.com/cipherstash/activestash/CHANGELOG.md"
 
-  spec.add_runtime_dependency "cipherstash-client", ">= 0.3.0"
+  spec.add_runtime_dependency "cipherstash-client", ">= 0.5.0"
   spec.add_runtime_dependency "activerecord"
 
   spec.add_development_dependency 'pg'

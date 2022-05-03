@@ -158,5 +158,29 @@ RSpec.describe ActiveStash::Search do
       ))
     end
   end
+
+  describe "#select" do
+    it "selects given fields when chained after query" do
+      result = User.query(first_name: "Emma").select(:first_name, :last_name)
+      expect(result[0].first_name).to eq("Emma")
+      expect(result[0].last_name).to eq("Bunton")
+      expect(result[0].id).to be_nil
+
+      expect {
+        result[0].dob
+      }.to raise_error(ActiveModel::MissingAttributeError)
+    end
+
+    it "selects given fields when query is chained after select" do
+      result = User.select(:first_name, :last_name).query(first_name: "Emma")
+      expect(result[0].first_name).to eq("Emma")
+      expect(result[0].last_name).to eq("Bunton")
+      expect(result[0].id).to be_nil
+
+      expect {
+        result[0].dob
+      }.to raise_error(ActiveModel::MissingAttributeError)
+    end
+  end
 end
 

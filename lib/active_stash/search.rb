@@ -136,7 +136,7 @@ module ActiveStash # :nodoc:
 
       # Reindex all records into CipherStash
       def reindex
-        find_each(&:save!)
+        find_each(&:cs_put)
         true
       end
 

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+* Fixed an issue where calling `joins` or `includes` before (or after) `query` fails
+* Ensure that `stash_id` is set if `cs_put` is called outside of a callback
+
+### Changed
+
+* Don't call `save` when bulk reindexing to avoid updating timestamps unnecessarily
+
 ## [0.2.0]
 
 ### Added

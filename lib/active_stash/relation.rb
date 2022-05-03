@@ -4,13 +4,13 @@ module ActiveStash
   class Relation < ::ActiveRecord::Relation
     include ActiveStash::RelationHelp::Compatability
 
-    stash_wrap(:select, :all)
     # TODO: Add count aggregate support
     stash_unsupported(:where, :count)
+    stash_wrap(:select, :all, :includes, :joins, :annotate)
 
-    def initialize(model)
-      @klass = model
-      @scope = model
+    def initialize(scope)
+      @klass = scope
+      @scope = scope
     end
 
     def query(*args, &block)
@@ -80,6 +80,10 @@ module ActiveStash
 
     def stash_query?
       @query || @stash_order
+    end
+
+    def inspect
+      @scope.inspect
     end
 
     protected

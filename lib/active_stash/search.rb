@@ -93,14 +93,13 @@ module ActiveStash # :nodoc:
       end
     end
 
-    def ensure_stash_id # :nodoc:
-      self.stash_id ||= SecureRandom.uuid
-    end
-
     # Index this record into CipherStash
     def cs_put
       ActiveStash::Logger.info("Indexing #{self.stash_id}")
+      ensure_stash_id
 
+      # TODO: If this fails, throw :abort
+      # it should unset stash_id if this record did not already exist
       self.class.collection.upsert(
         self.stash_id,
         self.serializable_hash(except: [self.class.primary_key, :stash_id]),
@@ -112,6 +111,11 @@ module ActiveStash # :nodoc:
     def cs_delete
       self.class.collection.delete(self.stash_id)
     end
+
+    private
+      def ensure_stash_id
+        self.stash_id ||= SecureRandom.uuid
+      end
 
     module ClassMethods
       attr_writer :collection_name
@@ -127,12 +131,12 @@ module ActiveStash # :nodoc:
 
       # Perform a query using the CipherStash collection indexes
       def query(*args, &block)
-        ::ActiveStash::Relation.new(self).query(*args, &block)
+        ::ActiveStash::Relation.new(current_scope || self).query(*args, &block)
       end
 
       # Reindex all records into CipherStash
       def reindex
-        find_each(&:save!)
+        find_each(&:cs_put)
         true
       end
 

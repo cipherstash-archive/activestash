@@ -1,10 +1,5 @@
-require 'open3'
-
-def stash(cmd)
-  Open3.popen3("stash #{cmd}") do |stdin, stdout, stderr|
-    puts stdout.read
-  end 
-end
+require "cipherstash/client"
+require "active_stash"
 
 def stash_enabled_models
   Dir.glob("#{Rails.root}/app/models/*.rb").each { |file| require file }
@@ -28,8 +23,8 @@ end
 namespace :active_stash do
   desc "Login to stash workspace"
   task :login, [:workspace] do |task, args|
-    stash("login --workspace #{args[:workspace]}")
-  end 
+    CipherStash::Client::Profile.create(ENV.fetch("CS_PROFILE_NAME", "default"), ActiveStash::Logger, workspace: args[:workspace])
+  end
 
   desc "Reindex the CipherStash collection for the given model"
   task(:reindex, [:name] => :environment) do |task, args|
@@ -95,7 +90,7 @@ namespace :active_stash do
           error("Collection '#{model.collection_name}' already exists (skipping)")
         end
       end
-    end 
+    end
 
     desc "Drop the given collection"
     task :drop, [:name] => :environment do |task, args|

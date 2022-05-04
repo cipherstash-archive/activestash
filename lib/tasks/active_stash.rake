@@ -110,6 +110,7 @@ namespace :active_stash do
         info("Creating #{model.collection_name}...")
 
         schema = ActiveStash::SchemaBuilder.new(model).build
+        p schema
         client = CipherStash::Client.new(logger: ActiveStash::Logger.instance)
         begin
           client.create_collection(model.collection_name, schema)

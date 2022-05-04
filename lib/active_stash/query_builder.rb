@@ -17,8 +17,10 @@ module ActiveStash
         when Hash
           collector.add_hash(constraint)
         when String
-          collector.all =~ constraint
+          collector.match_all(constraint)
       end
+
+      p collector
 
       if block_given?
         yield collector
@@ -33,6 +35,13 @@ module ActiveStash
       def initialize(stash_indexes)
         @fields = []
         @stash_indexes = stash_indexes
+      end
+
+      def match_all(arg)
+        index = @stash_indexes.get_match_multi
+        # TODO: Proper error type
+        raise "No match multi index defined" unless index
+        @fields << (Field.new("__match_multi", [index]) =~ arg)
       end
 
       def method_missing(name, *args)
@@ -105,7 +114,7 @@ module ActiveStash
         end
 
         if @index.nil?
-          raise "No available index for '#{@name}' using '#{@op}'"
+          ::Kernel.raise "No available index for '#{@name}' using '#{@op}'"
         end
 
         @value ||= maybe_cast(value)

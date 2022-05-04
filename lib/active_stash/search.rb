@@ -129,6 +129,25 @@ module ActiveStash # :nodoc:
         true
       end
 
+      def stash_index(*args)
+        opts = args.extract_options!
+
+        @stash_config ||= {}
+        @stash_config[:indexes] ||= {}
+        Array(args).each do |field|
+          if @stash_config[:indexes].has_key?(field)
+            ActiveStash::Logger.warn("index for '#{field}' was defined more than once on '#{self}'")
+          end
+
+          @stash_config[:indexes][field] = opts
+        end
+      end
+
+      def stash_match_multi(*args)
+        @stash_config ||= {}
+        @stash_config[:multi] = Array(args)
+      end
+
       # Perform a query using the CipherStash collection indexes
       def query(*args, &block)
         ::ActiveStash::Relation.new(current_scope || self).query(*args, &block)
@@ -136,7 +155,10 @@ module ActiveStash # :nodoc:
 
       # Reindex all records into CipherStash
       def reindex
-        find_each(&:cs_put)
+        find_each do |record|
+          record.save!(touch: false)
+        end
+
         true
       end
 
@@ -145,6 +167,8 @@ module ActiveStash # :nodoc:
         @collection ||= CipherStash::Client.new(logger: ActiveStash::Logger.instance).collection(collection_name)
       end
 
+      # TODO: create and drop collection methods here would be handy!
+
       # Name of the Stash collection
       # Defaults to the name of the table
       def collection_name
@@ -152,7 +176,7 @@ module ActiveStash # :nodoc:
       end
 
       def stash_indexes # :nodoc:
-        @stash_indexes ||= StashIndexes.new(self).build!
+        @stash_indexes ||= StashIndexes.new(self, @stash_config).build!
       end
     end
   end

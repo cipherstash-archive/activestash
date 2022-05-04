@@ -3,7 +3,7 @@ PATH
   specs:
     active_stash (0.2.0)
       activerecord
-      cipherstash-client (>= 0.3.0)
+      cipherstash-client (>= 0.5.0)
 
 GEM
   remote: https://rubygems.org/
@@ -19,7 +19,7 @@ GEM
       minitest (>= 5.1)
       tzinfo (~> 2.0)
     aws-eventstream (1.2.0)
-    aws-partitions (1.581.0)
+    aws-partitions (1.583.0)
     aws-sdk-core (3.130.2)
       aws-eventstream (~> 1, >= 1.0.2)
       aws-partitions (~> 1, >= 1.525.0)
@@ -31,7 +31,7 @@ GEM
     aws-sigv4 (1.5.0)
       aws-eventstream (~> 1, >= 1.0.2)
     cbor (0.5.9.6)
-    cipherstash-client (0.4.0)
+    cipherstash-client (0.5.0)
       aws-sdk-core (~> 3.0)
       aws-sdk-kms (~> 1.0)
       cbor (~> 0.5.9.6)

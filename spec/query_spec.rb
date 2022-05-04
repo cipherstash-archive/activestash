@@ -1,7 +1,5 @@
 require_relative "support/user"
 require_relative "support/migrations/create_users"
-require 'rake'
-load "tasks/active_stash.rake"
 
 RSpec.describe ActiveStash::Search do
   before(:all) do
@@ -43,10 +41,10 @@ RSpec.describe ActiveStash::Search do
 
   # TODO
   # Add lockbox
-  # Reduce the number of fields/indexes so tests run faster
   # first/last
   # Default scope
   # joins and includes tests
+  # match_multi index
 
   describe "#query simple constraints" do
     it "by exact name (single, 1 result)" do

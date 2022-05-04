@@ -9,7 +9,7 @@ module ActiveStash
 
     def initialize(field, name = field)
       @field = field
-      @name = name
+      @name = name.to_s
     end
 
     def self.exact(field)
@@ -21,6 +21,13 @@ module ActiveStash
 
     def self.match(field)
       new(field, "#{field}_match").tap do |index|
+        index.type = :match
+        index.valid_ops = [:match]
+      end
+    end
+
+    def self.match_multi(fields, name)
+      new(fields, name).tap do |index|
         index.type = :match
         index.valid_ops = [:match]
       end
@@ -46,8 +53,17 @@ module ActiveStash
   end
 
   class StashIndexes
-    def initialize(model)
+    def initialize(model, config_indexes)
       @model = model
+      # TODO: Warn if no indexes defined - should we just index everything then!?
+      @stash_config = config_indexes || {}
+    end
+
+    # Returns the match_multi index if one is defined
+    def get_match_multi
+      all.find do |index|
+        index.name == "__match_multi"
+      end
     end
 
     def on(field)
@@ -62,27 +78,46 @@ module ActiveStash
     end
 
     def build!
-      @indexes = fields.flat_map do |(field, type)|
-        case type
-          when *Index::RANGE_TYPES
-            [Index.range(field)]
+      _fields = fields()
+      @indexes = []
 
-          # TODO: Probably shouldn't do range types on text
-          # but AR Encrypted record treats all strings as :text
-          when :string, :text
-            # Special case!
-            [Index.exact(field), Index.match(field), Index.range(field)]
+      if Hash === @stash_config[:indexes]
+        @stash_config[:indexes].each do |field, options|
+          type = _fields[field.to_s]
 
-          when :boolean, :uuid
-            [Index.exact(field)]
+          targets =
+            case type
+              when *Index::RANGE_TYPES
+                target_indexes(:range, options)
 
-          else
-            ActiveStash::Logger.warn("ignoring field '#{field}' which has type #{type} as index type cannot be implied")
-            []
+              when :string, :text
+                target_indexes(:exact, :match, :range, options)
+
+              when :boolean, :uuid
+                target_indexes(:exact, options)
+
+              else
+                ActiveStash::Logger.warn("ignoring field '#{field}' which has type #{type} as index type cannot be implied")
+                []
+            end
+
+          @indexes.concat(new_indexes(field, targets))
         end
       end
 
-      @indexes << Index.dynamic_match("all")
+      # TODO: Test this case
+      if @stash_config[:multi]
+        # Check that all multi fields are texty
+        @stash_config[:multi].each do |field|
+          type = _fields[field.to_s]
+          unless type == :string || type == :text
+            # TODO: Custom type
+            raise "Cannot include field '#{field}' in stash_match_multi because it is neither a string nor text type"
+          end
+        end
+
+        @indexes << Index.match_multi(@stash_config[:multi], "__match_multi")
+      end
 
       self
     end
@@ -95,23 +130,53 @@ module ActiveStash
       handle_encrypted_types(fields)
     end
 
-    def handle_encrypted_types(fields)
-      if @model.respond_to?(:lockbox_attributes)
-        @model.lockbox_attributes.each do |(attr, settings)|
-          if settings[:attribute] != settings[:encrypted_attribute]
-            fields.delete(settings[:encrypted_attribute])
+    private
+      def handle_encrypted_types(fields)
+        if @model.respond_to?(:lockbox_attributes)
+          @model.lockbox_attributes.each do |(attr, settings)|
+            if settings[:attribute] != settings[:encrypted_attribute]
+              fields.delete(settings[:encrypted_attribute])
+            end
           end
+        end
+
+        ignore_ids(fields)
+      end
+
+      def ignore_ids(fields)
+        fields.tap do |f|
+          f.delete("id")
+          f.delete("stash_id")
         end
       end
 
-      ignore_ids(fields)
-    end
-
-    def ignore_ids(fields)
-      fields.tap do |f|
-        f.delete("id")
-        f.delete("stash_id")
+      def target_indexes(*args)
+        options = args.extract_options!
+        if only = options[:only]
+          args.select do |index_type|
+            Array(only).include?(index_type)
+          end
+        elsif except = options[:except]
+          args.reject do |index_type|
+            Array(except).include?(index_type)
+          end
+        else
+          args
+        end
       end
-    end
+
+      def new_indexes(field, index_types)
+        if index_types.empty?
+          ActiveStash::Logger.warn("configuration for '#{field}' means that it has no stash indexes defined")
+        end
+
+        Array(index_types).map do |index_type|
+          case index_type
+            when :exact; Index.exact(field)
+            when :range; Index.range(field)
+            when :match; Index.match(field)
+          end
+        end
+      end
   end
 end

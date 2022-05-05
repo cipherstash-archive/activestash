@@ -157,7 +157,7 @@ rails active_stash:reindexall
 If you want to just reindex one model, for example `User`, run:
 
 ```sh
-active_stash:reindex[User]
+rails active_stash:reindex[User]
 ```
 
 You can also reindex in code:

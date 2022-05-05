@@ -134,6 +134,7 @@ module ActiveStash # :nodoc:
       #  Relation.new(self)
       #end
 
+      # TODO: Make this universal
       def is_stash_model?
         true
       end

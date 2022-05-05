@@ -100,11 +100,20 @@ module ActiveStash # :nodoc:
 
       # TODO: If this fails, throw :abort
       # it should unset stash_id if this record did not already exist
+      # Note: It turns out that Lockbox doesn't support serializable_hash
       self.class.collection.upsert(
         self.stash_id,
-        self.serializable_hash(except: [self.class.primary_key, :stash_id]),
+        self.stash_attrs,
         store_record: false
       )
+    end
+
+    def stash_attrs
+      indexed_fields = self.class.stash_config[:indexes].keys
+
+      self.attributes.select do |k, v|
+        indexed_fields.include?(k)
+      end
     end
 
     # Delete the current record from the CipherStash index
@@ -139,10 +148,12 @@ module ActiveStash # :nodoc:
             ActiveStash::Logger.warn("index for '#{field}' was defined more than once on '#{self}'")
           end
 
-          @stash_config[:indexes][field] = opts
+          @stash_config[:indexes][field.to_s] = opts
         end
       end
 
+      # TODO: Rename this to stash_match_all
+      # By default index all strings - allow it to take only and except
       def stash_match_multi(*args)
         @stash_config ||= {}
         @stash_config[:multi] = Array(args)
@@ -177,6 +188,10 @@ module ActiveStash # :nodoc:
 
       def stash_indexes # :nodoc:
         @stash_indexes ||= StashIndexes.new(self, @stash_config).build!
+      end
+
+      def stash_config
+        @stash_config || {indexes: [], multi: []}
       end
     end
   end

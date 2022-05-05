@@ -41,9 +41,11 @@ Any model in which you include ActiveStash::Search, will need to have a `stash_i
 For example, to add this to the table underlying your `User` model:
 
 ```sh
-rails g migration AddStashIdToUser stash_id:string
+rails g migration AddStashIdToUser stash_id:string:index
 rails db:migrate
 ```
+
+The above command also ensures that an index is created on `stash_id`.
 
 ## Create a CipherStash Collection
 

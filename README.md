@@ -102,7 +102,7 @@ To order by `dob`, do:
 ```ruby
 User.query(email: "person@example.com).order(:dob)
 ```
- 
+
 Or to use limit and offset:
 
 ```ruby
@@ -126,7 +126,7 @@ For example, to find all users born in or after 1998:
 ```ruby
 User.query { |q| q.dob > "1998-01-01".to_date }
 ```
-      
+
 Or, to perform a free-text search on name:
 
 ```ruby
@@ -178,6 +178,33 @@ User.query.order(:dob)
 ```
 
 Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/activestash`. To experiment with that code, run `bin/console` for an interactive prompt.
+
+
+## Managing Access Keys
+
+Access keys are secret credentials that allow your application to authentication to CipherStash when it is running in a non-interactive environment (such as production or CI).
+ActiveStash provides rake tasks to manage the access keys for your workspace.
+
+To create a new access key:
+
+```sh
+rake active_stash:access_key:create[keyname]
+```
+
+To list all the access keys currently associated with your workspace:
+
+```sh
+rake active_stash:access_key:list
+```
+
+Finally, to delete an access key:
+
+```sh
+rake active_stash:access_key:delete[keyname]
+```
+
+Every access key must have a unique name, so you know what it is used for (and so you don't accidentally delete the wrong one).
+You can have as many access keys as you like.
 
 
 ## Development

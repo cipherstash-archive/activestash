@@ -1,5 +1,6 @@
 require "cipherstash/client"
 require "active_stash"
+require "terminal-table"
 
 def stash_enabled_models
   Dir.glob("#{Rails.root}/app/models/*.rb").each { |file| require file }
@@ -23,7 +24,7 @@ end
 namespace :active_stash do
   desc "Login to stash workspace"
   task :login, [:workspace] do |task, args|
-    CipherStash::Client::Profile.create(ENV.fetch("CS_PROFILE_NAME", "default"), ActiveStash::Logger, workspace: args[:workspace])
+    CipherStash::Client::Profile.create(ENV.fetch("CS_PROFILE_NAME", "default"), Rails.logger, workspace: args[:workspace])
   end
 
   desc "Reindex the CipherStash collection for the given model"
@@ -38,6 +39,33 @@ namespace :active_stash do
     stash_enabled_models do |model|
       info("Reindexing #{model.collection_name}...")
       model.reindex
+    end
+  end
+
+  namespace :access_key do
+    desc "Create a new access key"
+    task :create, [:name] => :environment do |_task, args|
+      if args[:name].nil?
+        error("Must provide a key name")
+        exit 1
+      end
+      puts CipherStash::Client.new(logger: Rails.logger).create_access_key(args[:name]).secret_key
+    end
+
+    desc "List existing access keys"
+    task :list => :environment do
+      keys = CipherStash::Client.new(logger: Rails.logger).access_keys.map { |k| [k.name, k.id, k.created_at, k.last_used_at] }
+      puts Terminal::Table.new headings: ["Key Name", "Key ID", "Created At", "Last Used At"], rows: keys
+    end
+
+    desc "Delete an access key"
+    task :delete, [:name] => :environment do |_task, args|
+      if args[:name].nil?
+        error("Must provide a key name")
+        exit 1
+      end
+      CipherStash::Client.new(logger: Rails.logger).delete_access_key(args[:name])
+      puts "Key '#{args[:name]}' deleted'
     end
   end
 

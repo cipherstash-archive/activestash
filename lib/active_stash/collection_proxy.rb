@@ -3,11 +3,17 @@ require 'forwardable'
 module ActiveStash
   class CollectionProxy
     extend Forwardable
-    def_delegators :collection, :query, :upsert
+    def_delegators :collection, :query
     def_delegators :@model, :collection_name, :stash_indexes
 
     def initialize(model)
       @model = model
+    end
+
+    def upsert(stash_id, attrs, store_record:)
+      collection.upsert(stash_id, attrs, store_record: store_record)
+    rescue GRPC::NotFound
+      raise NoCollectionError, name: collection_name
     end
 
     def schema
@@ -25,6 +31,7 @@ module ActiveStash
     def drop!
       collection.drop
       logger.info("Successfully dropped '#{collection_name}'")
+      @collection = nil
       true
     rescue GRPC::NotFound
       raise NoCollectionError, "Collection '#{collection_name}' cannot be dropped because it doesn't exist"
@@ -33,6 +40,8 @@ module ActiveStash
     # TODO: This is a stub
     def info
       collection
+    rescue GRPC::NotFound
+      raise NoCollectionError, name: collection_name
     end
 
     private

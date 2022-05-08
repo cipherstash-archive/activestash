@@ -144,6 +144,7 @@ module ActiveStash # :nodoc:
 
         @stash_config ||= {}
         @stash_config[:indexes] ||= {}
+
         Array(args).each do |field|
           if @stash_config[:indexes].has_key?(field)
             ActiveStash::Logger.warn("index for '#{field}' was defined more than once on '#{self}'")
@@ -153,9 +154,7 @@ module ActiveStash # :nodoc:
         end
       end
 
-      # TODO: Rename this to stash_match_all
-      # By default index all strings - allow it to take only and except
-      def stash_match_multi(*args)
+      def stash_match_all(*args)
         @stash_config ||= {}
         @stash_config[:multi] = Array(args)
       end
@@ -175,12 +174,13 @@ module ActiveStash # :nodoc:
       end
 
       # Object representing the underlying CipherStash collection
-      def collection
-        @collection ||= CipherStash::Client.new(logger: ActiveStash::Logger.instance).collection(collection_name)
+      def collection(reload = false)
+        return @collection if @collection && !reload
+        @collection = CollectionProxy.new(self)
       end
 
-      # TODO: create and drop collection methods here would be handy!
-
+      # TODO: All of this can probably now get wrapped into the collection proxy
+      #
       # Name of the Stash collection
       # Defaults to the name of the table
       def collection_name

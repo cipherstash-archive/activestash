@@ -4,4 +4,5 @@ class User < ActiveRecord::Base
 
   stash_index :first_name, :dob, :created_at
   stash_index :gender, only: :exact
+  stash_match_all :first_name, :last_name, :email
 end

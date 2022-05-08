@@ -1,5 +1,7 @@
 require_relative "support/user"
 require_relative "support/migrations/create_users"
+require 'rake'
+load "tasks/active_stash.rake"
 
 RSpec.describe ActiveStash::Search do
   before(:all) do
@@ -12,13 +14,11 @@ RSpec.describe ActiveStash::Search do
 
     CreateUsers.migrate(:up)
 
-    schema = ActiveStash::SchemaBuilder.new(User).build
-    client = CipherStash::Client.new(logger: ActiveStash::Logger.instance)
-    client.create_collection(User.collection_name, schema)
+    User.collection.create!
   end
 
   after(:all) do
-    User.collection.drop
+    User.collection.drop!
     CreateUsers.migrate(:down)
   end
 

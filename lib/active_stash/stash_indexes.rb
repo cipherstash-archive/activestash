@@ -111,8 +111,7 @@ module ActiveStash
         @stash_config[:multi].each do |field|
           type = _fields[field.to_s]
           unless type == :string || type == :text
-            # TODO: Custom type
-            raise "Cannot include field '#{field}' in stash_match_multi because it is neither a string nor text type"
+            raise ConfigError, "Cannot specify field '#{field}' in stash_match_all because it is neither a string nor text type"
           end
         end
 

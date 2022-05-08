@@ -12,7 +12,6 @@ def stash_enabled_models
 end
 
 def info(message)
-  ActiveStash::Logger.info(message)
   puts "\e[36m\e[1m#{message}\e[22m\e[0m"
 end
 
@@ -107,26 +106,24 @@ namespace :active_stash do
     desc "Creates CipherStash indexes for all Stash enabled models"
     task :create => :environment do
       stash_enabled_models do |model|
-        info("Creating #{model.collection_name}...")
-
-        schema = ActiveStash::SchemaBuilder.new(model).build
-        client = CipherStash::Client.new(logger: ActiveStash::Logger.instance)
         begin
-          client.create_collection(model.collection_name, schema)
-          info("Successfully created '#{model.collection_name}'")
-        rescue GRPC::AlreadyExists
+          model.collection.create!
+          info("Created collection `#{model.collection_name}`")
+        rescue ActiveStash::CollectionExistsError
           error("Collection '#{model.collection_name}' already exists (skipping)")
         end
       end
     end
 
-    desc "Drop the given collection"
+    desc "Drop the collection attached to the given model"
     task :drop, [:name] => :environment do |task, args|
-      client = CipherStash::Client.new(logger: ActiveStash::Logger.instance)
-      client.collection(args[:name]).drop
-      info("Successfully dropped '#{args[:name]}'")
-    rescue GRPC::NotFound
-      error("No such collection '#{args[:name]}'")
+      model = args[:name].constantize
+      if model.respond_to?(:is_stash_model?) && model.is_stash_model?
+        model.collection.drop!
+      end
+      info("Dropped collection '#{model.collection_name}' which was attached to `#{args[:name]}`")
+    rescue ActiveStash::NoCollectionError
+      error("No such collection '#{model.collection_name}'")
     end
 
     desc "List all collections"

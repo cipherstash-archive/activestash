@@ -4,25 +4,15 @@ require 'rake'
 load "tasks/active_stash.rake"
 
 RSpec.describe ActiveStash::Search do
-  before(:all) do
-    ActiveRecord::Base.establish_connection(
-      adapter: 'postgresql',
-      host: 'localhost',
-      username: 'dan',
-      database: 'activestash_test'
-    )
-
-    CreateUsers.migrate(:up)
-
+  before(:context) do
     User.collection.create!
   end
 
-  after(:all) do
+  after(:context) do
     User.collection.drop!
-    CreateUsers.migrate(:down)
   end
 
-  before(:all) do
+  before(:context) do
     ago_2 = 2.days.ago
     ago_5 = 5.days.ago
 

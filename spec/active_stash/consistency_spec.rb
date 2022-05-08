@@ -1,5 +1,6 @@
 require_relative "../support/user"
 require_relative "../support/user_inconsistent"
+require_relative "../support/user_inconsistent2"
 require_relative "../support/migrations/create_users"
 
 RSpec.describe "constistency checks" do
@@ -47,8 +48,18 @@ RSpec.describe "constistency checks" do
       User.collection.create!
     end
 
-    it "not raises an error" do
+    it "raises an error" do
       expect { UserInconsistent.collection(true).info }.to raise_error(ActiveStash::CollectionDivergedError)
+    end
+  end
+
+  describe "when the backing collection exists but has an additional index" do
+    before do
+      User.collection.create!
+    end
+
+    it "raises an error" do
+      expect { UserInconsistent2.collection(true).info }.to raise_error(ActiveStash::CollectionDivergedError)
     end
   end
 end

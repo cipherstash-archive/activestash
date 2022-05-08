@@ -7,8 +7,7 @@ module ActiveStash
       end
 
       def unsupported!(method_name)
-        # TODO: Use a proper class
-        raise "'#{method_name}' is unsupported when used with encrypted queries or sorts"
+        raise QueryError, "'#{method_name}' is unsupported when used with encrypted queries or sorts"
       end
 
       module ClassMethods # :nodoc:

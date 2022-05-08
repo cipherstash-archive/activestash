@@ -3,6 +3,8 @@ module ActiveStash
 
   class ConfigError < ActiveStashError; end
 
+  class QueryError < ActiveStashError; end
+
   # Raised when no collection exists
   class CollectionError < ActiveStashError
     def initialize(message = nil, name: nil)

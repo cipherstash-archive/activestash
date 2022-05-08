@@ -8,5 +8,5 @@ class User2 < ActiveRecord::Base
   stash_index :title, except: [:match, :range]
   stash_index :created_at, :updated_at, except: :range
 
-  stash_match_multi :first_name, :last_name, :email
+  stash_match_all :first_name, :last_name, :email
 end

@@ -7,6 +7,16 @@ module ActiveStash
     RANGE_TYPES = [:timestamp, :date, :datetime, :float, :decimal, :integer]
     RANGE_OPS = [:lt, :lte, :gt, :gte, :eq, :between]
 
+    OPS_HASH = {
+      lt: "<",
+      lte: "<=",
+      gt: ">",
+      gte: ">=",
+      eq: "==",
+      match: "=~",
+      between: "between"
+    }
+
     def initialize(field, name = field)
       @field = field
       @name = name.to_s
@@ -48,7 +58,13 @@ module ActiveStash
     end
 
     def valid_op?(op)
-      valid_ops.include?(op)
+      @valid_ops.include?(op)
+    end
+
+    def valid_ops
+      @valid_ops.map do |op|
+        OPS_HASH[op]
+      end
     end
   end
 

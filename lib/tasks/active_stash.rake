@@ -64,41 +64,21 @@ namespace :active_stash do
         exit 1
       end
       CipherStash::Client.new(logger: ActiveStash::Logger.instance).delete_access_key(args[:name])
-      puts "Key '#{args[:name]}' deleted'
+      puts "Key '#{args[:name]}' deleted"
     end
   end
 
   namespace :collections do
-    desc "Describe collection"
+    desc "Describe the CipherStash collection attached to the given model"
     task :describe, [:name] => :environment do |task, args|
-      client = CipherStash::Client.new(logger: ActiveStash::Logger.instance)
-      collection = client.collection(args[:name])
-      meta = collection.instance_variable_get("@metadata")
-      indexes = collection.instance_variable_get("@indexes")
-
-      puts "-" * 54
-      puts ["field".center(20), "type".center(15), "indexes".center(20)].join("|")
-      puts "-" * 54
-      meta["recordType"].each do |(field, type)|
-        index_types = indexes.select { |index|
-          mapping = index.instance_variable_get("@settings")["mapping"]
-          mapping["field"] == field || (mapping["fields"] || []).include?(field)
-        }.map { |index|
-          index.instance_variable_get("@settings")["mapping"]["kind"]
-        }.join(", ")
-
-        puts [ " " + field.ljust(19), type.ljust(14), index_types].join("| ")
-      end
-
-      # Dynamic Indexes
-      indexes.select do |index|
-        mapping = index.instance_variable_get("@settings")["mapping"]
-        if mapping["kind"] == "dynamic-match"
-          puts [ " *".ljust(20), "dynamic-match".ljust(14), "all" ].join("| ") # TODO: actual index name
+      model = args[:name].constantize
+      table = Terminal::Table.new(headings: ["Name", "Type", "Field(s)", "Valid Operators"]) do |t|
+        model.stash_indexes.all.each do |index|
+          t << [index.name, index.type, Array(index.field).join(", "), index.valid_ops.join(", ")]
         end
       end
 
-      puts "-" * 54
+      puts table
     rescue GRPC::NotFound
       error("No such collection")
     end
@@ -126,18 +106,15 @@ namespace :active_stash do
       error("No such collection '#{model.collection_name}'")
     end
 
-    desc "List all collections"
+    desc "List all stash enabled models and their CipherStash collections"
     task :list => :environment do
-      client = CipherStash::Client.new(logger: ActiveStash::Logger.instance)
-      collections = client.collections
-      puts "\nCollections"
-      puts "-" * 20
-      collections.each do |collection|
-        puts " - #{collection.name}"
+      table = Terminal::Table.new(headings: ["Model", "Collection"]) do |t|
+        stash_enabled_models do |model|
+          t << [model.name, model.collection_name]
+        end
       end
-      puts "-" * 20
-      puts "#{collections.size} collection#{'s' if collections.size != 1} in workspace"
-      puts
+
+      puts table
     end
   end
 end

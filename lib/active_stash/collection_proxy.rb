@@ -29,7 +29,7 @@ module ActiveStash
     end
 
     def drop!
-      collection.drop
+      collection(skip_consistency_check: true).drop
       logger.info("Successfully dropped '#{collection_name}'")
       @collection = nil
       true
@@ -45,9 +45,9 @@ module ActiveStash
     end
 
     private
-      def collection
+      def collection(skip_consistency_check: false)
         @collection ||= client.collection(collection_name).tap do |collection|
-          consistency_check!(collection)
+          consistency_check!(collection) unless skip_consistency_check
         end
       rescue GRPC::NotFound
         raise NoCollectionError, name: collection_name

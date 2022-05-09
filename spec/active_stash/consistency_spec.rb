@@ -25,6 +25,9 @@ RSpec.describe "constistency checks" do
 
     it "raises an error" do
       expect { UserInconsistent.collection(true).info }.to raise_error(ActiveStash::CollectionDivergedError)
+      UserInconsistent.collection.drop!
+      UserInconsistent.collection.create!
+      expect { UserInconsistent.collection(true).info }.to_not raise_error
     end
   end
 

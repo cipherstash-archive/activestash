@@ -81,7 +81,7 @@ These are as follows:
 ### String and Text
 
 `:string` and `:text` types automatically create the following indexes.
-While range indexes work on strings for any queries, they are typically only useful for ordering.
+Range indexes on strings typically only work for ordering.
 
 | Indexes Created | Allowed Operators | Example |
 |-----------------|-------------------|---------------------|

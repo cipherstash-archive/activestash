@@ -7,9 +7,26 @@ that are configured to use field level encryption (using [Lockbox](https://githu
 When records are created or updated, they are indexed into a CipherStash collection
 which can be queried via an ActiveStash::Relation.
 
-TODO: More about CipherStash
-TODO: Arch and define collection and index
-TODO: Maybe a diagram?
+## What is CipherStash?
+
+Field-level encryption is a powerful tool to protect sensitive data in your Active Record models.
+However, when a field is encrypted, it can't be queried!
+Simple lookups are impossible let alone free-text search or range queries.
+
+This is where CipherStash comes in.
+CipherStash is an Encrypted Search Index and using ActiveStash allows you to perform exact, free-text and
+range queries on your Encrypted ActiveRecord models.
+Queries use `ActiveStash::Relation` which wraps `ActiveRecord::Relation` so _most_ of the queries you can do in
+ActiveRecord can be done using ActiveStash.
+
+## How does it work?
+
+ActiveStash uses the "look-aside" pattern to create an external, fully encrypted index for your ActiveRecord models.
+Every time you create or update a record, the data is indexed to CipherStash via ActiveRecord callbacks.
+Queries are delegated to CipherStash but return ActiveRecord models so things just work.
+
+If you've used Elasticsearch with gems like [Searchkick](https://github.com/ankane/searchkick), this pattern will be familiar to you.
+
 
 ## Getting a workspace
 

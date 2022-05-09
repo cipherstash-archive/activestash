@@ -12,8 +12,6 @@ module ActiveStash
 
     def upsert(stash_id, attrs, store_record:)
       collection.upsert(stash_id, attrs, store_record: store_record)
-    rescue GRPC::NotFound
-      raise NoCollectionError, name: collection_name
     end
 
     def schema
@@ -24,7 +22,7 @@ module ActiveStash
       client.create_collection(collection_name, schema)
       logger.info("Successfully created '#{collection_name}'")
       true
-    rescue GRPC::AlreadyExists
+    rescue CipherStash::Client::Error::CollectionCreateFailure
       raise CollectionExistsError, name: collection_name
     end
 
@@ -33,15 +31,13 @@ module ActiveStash
       logger.info("Successfully dropped '#{collection_name}'")
       @collection = nil
       true
-    rescue GRPC::NotFound
+    rescue CipherStash::Client::Error::CollectionDeleteFailure
       raise NoCollectionError, "Collection '#{collection_name}' cannot be dropped because it doesn't exist"
     end
 
     # TODO: This is a stub
     def info
       collection
-    rescue GRPC::NotFound
-      raise NoCollectionError, name: collection_name
     end
 
     private
@@ -49,7 +45,7 @@ module ActiveStash
         @collection ||= client.collection(collection_name).tap do |collection|
           consistency_check!(collection) unless skip_consistency_check
         end
-      rescue GRPC::NotFound
+      rescue CipherStash::Client::Error::CollectionInfoFailure
         raise NoCollectionError, name: collection_name
       end
 

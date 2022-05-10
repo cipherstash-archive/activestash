@@ -87,7 +87,7 @@ Range indexes on strings typically only work for ordering.
 |-----------------|-------------------|---------------------|
 | `match`         | `=~`              | `User.query { |q| q.name =~ "foo" }` |
 | `exact`         | `==`              | `User.query(email: "foo@example.com)` |
-| `range`         | `<`, `<=`, `==`, `>=`, >` | `User.query.order(:email)` |
+| `range`         | `<`, `<=`, `==`, `>=`, `>` | `User.query.order(:email)` |
 
 ### Numeric Types
 
@@ -95,7 +95,7 @@ Range indexes on strings typically only work for ordering.
 
 | Indexes Created | Allowed Operators | Example |
 |-----------------|-------------------|---------------------|
-| `range`         | `<`, `<=`, `==`, `>=`, >` | `User.query { |q| q.dob > 20.years.ago }` |
+| `range`         | `<`, `<=`, `==`, `>=`, `>` | `User.query { \|q\| q.dob > 20.years.ago }` |
 
 ### Overriding Automatically Created Indexes
 
@@ -266,9 +266,6 @@ User.order(:dob)
 # Without a default scope you'd need to call
 User.query.order(:dob)
 ```
-
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/activestash`. To experiment with that code, run `bin/console` for an interactive prompt.
-
 
 ## Managing Access Keys
 

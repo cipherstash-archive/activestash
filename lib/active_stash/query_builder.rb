@@ -11,13 +11,14 @@ module ActiveStash
 
     # Build a query for the given model
     def self.build_query(model, constraint = {})
-      collector = Collector.new(model.stash_indexes)
+      # TODO: Eventually this can take a collection proxy
+      collector = Collector.new(model)
 
       case constraint
         when Hash
           collector.add_hash(constraint)
         when String
-          collector.all =~ constraint
+          collector.match_all(constraint)
       end
 
       if block_given?
@@ -30,9 +31,16 @@ module ActiveStash
     class Collector < BasicObject # :nodoc:
       attr_reader :fields
 
-      def initialize(stash_indexes)
+      def initialize(model)
         @fields = []
-        @stash_indexes = stash_indexes
+        @model = model
+        @stash_indexes = model.stash_indexes
+      end
+
+      def match_all(arg)
+        index = @stash_indexes.get_match_multi
+        ::Kernel.raise NoMatchAllError, name: @model.collection_name unless index
+        @fields << (Field.new("__match_multi", [index]) =~ arg)
       end
 
       def method_missing(name, *args)
@@ -105,7 +113,7 @@ module ActiveStash
         end
 
         if @index.nil?
-          raise "No available index for '#{@name}' using '#{@op}'"
+          ::Kernel.raise "No available index for '#{@name}' using '#{@op}'"
         end
 
         @value ||= maybe_cast(value)

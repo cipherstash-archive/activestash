@@ -7,7 +7,18 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
 
   config.before(:suite) do
-    FactoryBot.find_definitions
+    ActiveRecord::Base.establish_connection(
+      adapter: 'postgresql',
+      host: 'localhost',
+      username: 'dan',
+      database: 'activestash_test'
+    )
+
+    CreateUsers.migrate(:up)
+  end
+
+  config.after(:suite) do
+    CreateUsers.migrate(:down)
   end
 
   # Enable flags like --only-failures and --next-failure

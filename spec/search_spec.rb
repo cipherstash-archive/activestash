@@ -4,28 +4,16 @@ require 'rake'
 load "tasks/active_stash.rake"
 
 RSpec.describe ActiveStash::Search do
-  before(:all) do
-    ActiveRecord::Base.establish_connection(
-      adapter: 'postgresql',
-      host: 'localhost',
-      username: 'dan',
-      database: 'activestash_test'
-    )
-
-    CreateUsers.migrate(:up)
-
-    schema = ActiveStash::SchemaBuilder.new(User).build
-    client = CipherStash::Client.new(logger: ActiveStash::Logger.instance)
-    client.create_collection(User.collection_name, schema)
-  end
-
-  after(:all) do
-    User.collection.drop
-    CreateUsers.migrate(:down)
-  end
-
   describe "#cs_put" do
-    let!(:user) do
+    before(:example) do
+      User.collection.create!
+    end
+
+    after(:example) do
+      User.collection.drop!
+    end
+
+    let(:user) do
       User.create!(
         first_name: "James",
         last_name: "Hetfield",

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0]
+
 ### Fixed
 
 * Fixed an issue where calling `joins` or `includes` before (or after) `query` fails
@@ -14,7 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+* Indexes must now be specified via `stash_index` and/or `stash_match_all`
 * Don't call `save` when bulk reindexing to avoid updating timestamps unnecessarily
+* ActiveStash now detects if your model settings have diverged from the server configuration
 
 ## [0.2.0]
 

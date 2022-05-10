@@ -100,11 +100,20 @@ module ActiveStash # :nodoc:
 
       # TODO: If this fails, throw :abort
       # it should unset stash_id if this record did not already exist
+      # Note: It turns out that Lockbox doesn't support serializable_hash
       self.class.collection.upsert(
         self.stash_id,
-        self.serializable_hash(except: [self.class.primary_key, :stash_id]),
+        self.stash_attrs,
         store_record: false
       )
+    end
+
+    def stash_attrs
+      indexed_fields = self.class.stash_config[:indexes].keys
+
+      self.attributes.select do |k, v|
+        indexed_fields.include?(k)
+      end
     end
 
     # Delete the current record from the CipherStash index
@@ -125,8 +134,29 @@ module ActiveStash # :nodoc:
       #  Relation.new(self)
       #end
 
+      # TODO: Make this universal
       def is_stash_model?
         true
+      end
+
+      def stash_index(*args)
+        opts = args.extract_options!
+
+        @stash_config ||= {}
+        @stash_config[:indexes] ||= {}
+
+        Array(args).each do |field|
+          if @stash_config[:indexes].has_key?(field)
+            ActiveStash::Logger.warn("index for '#{field}' was defined more than once on '#{self}'")
+          end
+
+          @stash_config[:indexes][field.to_s] = opts
+        end
+      end
+
+      def stash_match_all(*args)
+        @stash_config ||= {}
+        @stash_config[:multi] = Array(args)
       end
 
       # Perform a query using the CipherStash collection indexes
@@ -136,15 +166,21 @@ module ActiveStash # :nodoc:
 
       # Reindex all records into CipherStash
       def reindex
-        find_each(&:cs_put)
+        find_each do |record|
+          record.save!(touch: false)
+        end
+
         true
       end
 
       # Object representing the underlying CipherStash collection
-      def collection
-        @collection ||= CipherStash::Client.new(logger: ActiveStash::Logger.instance).collection(collection_name)
+      def collection(reload = false)
+        return @collection if @collection && !reload
+        @collection = CollectionProxy.new(self)
       end
 
+      # TODO: All of this can probably now get wrapped into the collection proxy
+      #
       # Name of the Stash collection
       # Defaults to the name of the table
       def collection_name
@@ -152,7 +188,11 @@ module ActiveStash # :nodoc:
       end
 
       def stash_indexes # :nodoc:
-        @stash_indexes ||= StashIndexes.new(self).build!
+        @stash_indexes ||= StashIndexes.new(self, @stash_config).build!
+      end
+
+      def stash_config
+        @stash_config || {indexes: [], multi: []}
       end
     end
   end

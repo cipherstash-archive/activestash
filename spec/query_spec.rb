@@ -4,27 +4,15 @@ require 'rake'
 load "tasks/active_stash.rake"
 
 RSpec.describe ActiveStash::Search do
-  before(:all) do
-    ActiveRecord::Base.establish_connection(
-      adapter: 'postgresql',
-      host: 'localhost',
-      username: 'dan',
-      database: 'activestash_test'
-    )
-
-    CreateUsers.migrate(:up)
-
-    schema = ActiveStash::SchemaBuilder.new(User).build
-    client = CipherStash::Client.new(logger: ActiveStash::Logger.instance)
-    client.create_collection(User.collection_name, schema)
+  before(:context) do
+    User.collection.create!
   end
 
-  after(:all) do
-    User.collection.drop
-    CreateUsers.migrate(:down)
+  after(:context) do
+    User.collection.drop!
   end
 
-  before(:all) do
+  before(:context) do
     ago_2 = 2.days.ago
     ago_5 = 5.days.ago
 
@@ -43,10 +31,10 @@ RSpec.describe ActiveStash::Search do
 
   # TODO
   # Add lockbox
-  # Reduce the number of fields/indexes so tests run faster
   # first/last
   # Default scope
   # joins and includes tests
+  # match_multi index
 
   describe "#query simple constraints" do
     it "by exact name (single, 1 result)" do

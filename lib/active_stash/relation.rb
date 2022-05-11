@@ -64,11 +64,11 @@ module ActiveStash
             q.add_constraint(
               constraint.index.name,
               constraint.op.to_s,
-              constraint.value
+              *constraint.values
             )
           end
         end.records.map(&:id)
-        
+
         relation = @scope.where(stash_id: ids)
         relation = relation.in_order_of(:stash_id, ids) if @stash_order
         @loaded = true

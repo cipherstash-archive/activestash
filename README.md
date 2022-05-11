@@ -95,7 +95,7 @@ Range indexes on strings typically only work for ordering.
 
 | Indexes Created | Allowed Operators | Example |
 |-----------------|-------------------|---------------------|
-| `range`         | `<`, `<=`, `==`, `>=`, `>` | `User.query { \|q\| q.dob > 20.years.ago }` |
+| `range`         | `<`, `<=`, `==`, `>=`, `>`, `between` | `User.query { \|q\| q.dob > 20.years.ago }` |
 
 ### Overriding Automatically Created Indexes
 

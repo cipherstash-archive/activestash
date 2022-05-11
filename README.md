@@ -1,9 +1,10 @@
 # ActiveStash
 
 ActiveStash is the Rails specific gem for using [CipherStash](https://cipherstash.com).
-It provides search functionality for ActiveRecord models
-that are configured to use field level encryption (using [Lockbox](https://github.com/ankane/lockbox) or
+
+It provides search functionality for ActiveRecord models that are configured to use field level encryption (using [Lockbox](https://github.com/ankane/lockbox) or
 [EncryptedRecord](https://guides.rubyonrails.org/active_record_encryption.html)).
+
 When records are created or updated, they are indexed into a CipherStash collection
 which can be queried via an ActiveStash::Relation.
 
@@ -37,11 +38,15 @@ See our [Getting Started Guide](https://docs.cipherstash.com/tutorials/getting-s
 
 Add this line to your applications Gemfile:
 
-    gem 'activestash'
+```ruby
+gem 'activestash'
+```
 
 And then execute:
 
-    $ bundle install
+```sh
+$ bundle install
+```
 
 To use, include ActiveStash::Search in a model and define which fields you want to make searchable:
 
@@ -64,8 +69,8 @@ Any model in which you include ActiveStash::Search, will need to have a `stash_i
 For example, to add this to the table underlying your `User` model:
 
 ```sh
-rails g migration AddStashIdToUser stash_id:string:index
-rails db:migrate
+$ rails g migration AddStashIdToUser stash_id:string:index
+$ rails db:migrate
 ```
 
 The above command also ensures that an index is created on `stash_id`.
@@ -116,8 +121,7 @@ stash_index :my_string, except: :range
 
 ## Match All Indexes
 
-ActiveStash can also create an index across multiple string fields so that you can perform free-text queries across all
-specified fields at once.
+ActiveStash can also create an index across multiple string fields so that you can perform free-text queries across all specified fields at once.
 
 To do so, you can use the `stash_match_all` DSL method and specify the fields that you want to have indexed:
 
@@ -151,13 +155,13 @@ This command will create collections for all the models you have set up to use A
 To index your encrypted data into CipherStash, use the reindex task:
 
 ```sh
-rails active_stash:reindexall
+$ rails active_stash:reindexall
 ```
 
 If you want to just reindex one model, for example `User`, run:
 
 ```sh
-rails active_stash:reindex[User]
+$ rails active_stash:reindex[User]
 ```
 
 You can also reindex in code:
@@ -168,6 +172,35 @@ User.reindex
 
 Depending on how much data you have, reindexing may take a while but you only need to do it once.
 *ActiveStash will automatically index (and delete) data as it records are created, updated and deleted.*
+
+## Current limitations
+
+Presently, ActiveStash provides no means to update the schema of a CipherStash collection. Therefore if you need to make any changes to the Collection schema itself (by using the `stash_index` or `stash_match_all` helpers) you must drop your collection and recreate it.
+
+If your indexed model is called `User` for example, you should run the following commands:
+
+```sh
+$ rails active_stash:drop[User]
+$ rails active_stash:create
+$ rails active_stash:reindex[User]
+```
+
+Support for zero-downtime Collection schema changes and reindexing is being actively worked on and will be available soon.
+
+### When to Reindex Your Collection
+
+These are the rules for when you *must* re-index your collection:
+
+1. You have imported, deleted or updated data in the table that backs your ActiveStash model via some external mechanism, OR
+2. You have added or removed a string/text column from the table that backs your ActiveStash model *and* you are using a `dynamic_match` index in your model
+
+### When to Drop, Recreate and Reindex Your Collection
+
+This is the rule to determine when you *must* drop, recreate and reindex your collection:
+
+1. Whenever you modify one or more ActiveStash index definitions in your model
+
+See [Current Limitations](#current-limitations) for instructions on what commands to run to accomplish this.
 
 ## Running Queries
 

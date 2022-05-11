@@ -80,6 +80,14 @@ RSpec.describe ActiveStash::Search do
 
       expect(results.map(&:first_name)).to eq(%w(Lars Robert))
     end
+
+    it "by range between" do
+      results = User.query { |q|
+        q.dob.between("1974-01-12".to_date, "1974-06-17".to_date)
+      }.select(:first_name)
+
+      expect(results.map(&:first_name)).to eq(%w(Melanie Victoria))
+    end
   end
 
   describe "limit and offset" do
@@ -171,4 +179,3 @@ RSpec.describe ActiveStash::Search do
     end
   end
 end
-

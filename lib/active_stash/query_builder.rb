@@ -62,7 +62,7 @@ module ActiveStash
     end
 
     class Field < BasicObject # :nodoc:
-      attr_reader :index, :value, :op
+      attr_reader :index, :values, :op
 
       def initialize(name, available_indexes)
         @name = name
@@ -84,7 +84,7 @@ module ActiveStash
         @op ||= :match
         set(value)
       end
-      
+
       def >(value)
         @op ||= :gt
         set(value)
@@ -105,8 +105,13 @@ module ActiveStash
         set(value)
       end
 
+      def between(min, max)
+        @op ||= :between
+        set(min, max)
+      end
+
       private
-      def set(value)
+      def set(*values)
         # Find the appropriate index to use
         @index = @available_indexes.find do |index|
           index.valid_op?(@op)
@@ -116,7 +121,7 @@ module ActiveStash
           ::Kernel.raise "No available index for '#{@name}' using '#{@op}'"
         end
 
-        @value ||= maybe_cast(value)
+        @values ||= values.map { |value| maybe_cast(value) }
         self
       end
 

@@ -6,13 +6,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rails-version: [7, 6]
+        rails-version: [6, 7]
     env:
       BUNDLE_GEMFILE: gemfiles/rails${{ matrix.rails-version }}.gemfile
       CS_IDP_CLIENT_SECRET: ${{ secrets.CS_IDP_CLIENT_SECRET }}
       CS_WORKSPACE: ${{ secrets.CS_WORKSPACE }}
       CS_KMS_KEY_ARN: ${{ secrets.CS_KMS_KEY_ARN }}
       CS_NAMING_KEY:  ${{ secrets.CS_NAMING_KEY }}
+      RAILS_VERSION: ${{ matrix.rails-version }}
       ACTIVE_STASH_TEST_COLLECTION_PREFIX: rails_${{ matrix.rails-version }}
       PGDATABASE: activestash_test_rails_${{ matrix.rails-version }}
     steps:

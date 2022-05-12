@@ -198,9 +198,11 @@ These are the rules for when you *must* re-index your collection:
 
 This is the rule to determine when you *must* drop, recreate and reindex your collection:
 
-1. Whenever you modify one or more ActiveStash index definitions in your model
+1. Whenever add or modify one or more ActiveStash index definitions in your model
 
 See [Current Limitations](#current-limitations) for instructions on what commands to run to accomplish this.
+
+*NOTE:* technically, you do not need to reindex your collection if you *remove* an index definition on your model. A removed index definition will not remove the index stored in CipherStash and it will not be useable in queries, but it will still be incurring CPU & network costs to keep it up to date.
 
 ## Running Queries
 

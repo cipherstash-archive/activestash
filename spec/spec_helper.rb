@@ -10,7 +10,8 @@ RSpec.configure do |config|
     ActiveRecord::Base.establish_connection(
       adapter: 'postgresql',
       host: 'localhost',
-      username: 'dan',
+      username: ENV["PGUSER"] || nil,
+      password: ENV["PGPASSWORD"] || nil,
       database: 'activestash_test'
     )
 

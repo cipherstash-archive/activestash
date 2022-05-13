@@ -1,0 +1,27 @@
+name: build
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_GEMFILE: ${{ matrix.gemfile }}
+      CS_IDP_CLIENT_SECRET: ${{ secrets.CS_IDP_CLIENT_SECRET }}
+      CS_WORKSPACE: ${{ secrets.CS_WORKSPACE }}
+      CS_KMS_KEY_ARN: ${{ secrets.CS_KMS_KEY_ARN }}
+      CS_NAMING_KEY:  ${{ secrets.CS_NAMING_KEY }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - gemfile: gemfiles/rails7.gemfile
+        - gemfile: gemfiles/rails6.gemfile
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.7.6
+        bundler-cache: true
+    - uses: ankane/setup-postgres@v1
+      with:
+        database: activestash_test
+    - run: bundle exec rake spec

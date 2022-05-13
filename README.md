@@ -39,7 +39,7 @@ See our [Getting Started Guide](https://docs.cipherstash.com/tutorials/getting-s
 Add this line to your applications Gemfile:
 
 ```ruby
-gem 'activestash'
+gem 'active_stash'
 ```
 
 And then execute:

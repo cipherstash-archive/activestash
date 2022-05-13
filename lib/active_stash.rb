@@ -25,9 +25,7 @@ module ActiveStash
   end
 
   Config.class_eval do
-    CipherStash::Client.client_options.each do |option|
-      attr_accessor option.to_s.underscore.to_sym
-    end
+    attr_accessor *CipherStash::Client.client_options.map { |o| o.to_s.underscore.to_sym }
   end
 
   def self.config

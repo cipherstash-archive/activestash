@@ -4,10 +4,10 @@ module ActiveStash
 
     initializer "active_stash.configure" do |app|
       ActiveStash.configure do |config|
-        app.config.active_stash.each { |key, value| config.send("#{key}=", value) }
+        app.config.active_stash.each { |key, value| config.public_send("#{key}=", value) }
 
         if active_stash_credentials = app.credentials.active_stash
-          active_stash_credentials.each { |key, value| config.send("#{key}=", value) }
+          active_stash_credentials.each { |key, value| config.public_send("#{key}=", value) }
         end
       end
     end

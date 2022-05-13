@@ -26,13 +26,6 @@ end
 
 RSpec.describe ActiveStash::StashIndexes do
   before(:all) do
-    ActiveRecord::Base.establish_connection(
-      adapter: 'postgresql',
-      host: 'localhost',
-      username: 'dan',
-      database: 'activestash_test'
-    )
-
     CreateUsers2.migrate(:up)
   end
 

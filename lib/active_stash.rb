@@ -14,4 +14,27 @@ require "cipherstash/client"
 
 module ActiveStash
   class Error < StandardError; end
+
+  class Config
+    def to_client_opts
+      self.instance_values
+        .map { |key, value| [key.to_s.camelize(:lower).to_sym, value] }
+        .to_h
+        .compact
+    end
+  end
+
+  Config.class_eval do
+    CipherStash::Client.client_options.each do |option|
+      attr_accessor option.to_s.underscore.to_sym
+    end
+  end
+
+  def self.config
+    @@config ||= Config.new
+  end
+
+  def self.configure
+    yield self.config
+  end
 end

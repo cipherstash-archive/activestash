@@ -75,6 +75,34 @@ $ rails db:migrate
 
 The above command also ensures that an index is created on `stash_id`.
 
+## Configuration
+
+ActiveStash supports all CipherStash configuration described in [the docs](https://docs.cipherstash.com/reference/client-configuration.html).
+
+In addition to configuration via JSON files and environment variables, ActiveStash supports Rails config and credentials.
+
+For example, to use a specific profile in development, you could include the following in `config/environments/development.rb`:
+```ruby
+Rails.application.configure do
+  config.active_stash.profile_name = "dev-profile"
+
+  # Other config...
+end
+```
+
+For secrets, you can add ActiveStash config to your credentials (`rails credentials:edit --environment <env>`):
+```yaml
+active_stash:
+  aws_secret_access_key: your_secret
+```
+
+You can also use an initializer (e.g. `config/initializers/active_stash.rb`):
+```ruby
+ActiveStash.configure do |config|
+  config.aws_secret_access_key = Rails.application.credentials.aws.secret_access_key
+end
+```
+
 ## Index Types
 
 CipherStash supports 3 main types of indexes: `exact`, `range` (allows queries like `<` and `>`)

@@ -20,7 +20,7 @@ module ActiveStash
       def instance
         return @logger if @logger
 
-        if defined?(Rails)
+        if defined?(Rails) && Rails.logger
           @logger = Rails.logger
         else
           @logger = ::Logger.new(STDOUT)

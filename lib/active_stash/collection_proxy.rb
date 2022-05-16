@@ -64,7 +64,7 @@ module ActiveStash
       end
 
       def client
-        @client = CipherStash::Client.new(
+        @client ||= CipherStash::Client.new(
           logger: ActiveStash::Logger.instance,
           **ActiveStash.config.to_client_opts
         )

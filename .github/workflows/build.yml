@@ -25,4 +25,6 @@ jobs:
       - uses: ankane/setup-postgres@v1
         with:
           database: activestash_test_rails_${{ matrix.rails-version }}
+      # Ensures that the database is in a clean state before any test runs.
+      - run: psql -d activestash_test_rails_${{ matrix.rails-version }} -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
       - run: bundle exec rake spec

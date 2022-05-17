@@ -12,7 +12,7 @@ RSpec.configure do |config|
       host: 'localhost',
       username: ENV["PGUSER"] || nil,
       password: ENV["PGPASSWORD"] || nil,
-      database: 'activestash_test'
+      database: ENV["PGDATABASE"] || 'activestash_test'
     )
 
     CreateUsers.migrate(:up)

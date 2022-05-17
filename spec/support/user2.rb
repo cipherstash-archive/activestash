@@ -1,6 +1,7 @@
 class User2 < ActiveRecord::Base
   include ActiveStash::Search
   self.table_name = "users2"
+  self.collection_name = "activestash_test_#{ENV["ACTIVE_STASH_TEST_COLLECTION_PREFIX"] || ""}_users2"
 
   stash_index :first_name
   stash_index :dob, :last_name

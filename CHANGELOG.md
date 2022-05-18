@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0]
+
+### Added
+
+* Now supports Rails 6 (by backporting `ActiveRecord::Relation.in_order_of`)
+
 ## [0.3.0]
 
 ### Fixed

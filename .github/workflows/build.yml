@@ -9,6 +9,7 @@ jobs:
         rails-version: [6, 7]
     env:
       BUNDLE_GEMFILE: gemfiles/rails${{ matrix.rails-version }}.gemfile
+      RSPEC_FULL_BACKTRACE: yes
       CS_IDP_CLIENT_SECRET: ${{ secrets.CS_IDP_CLIENT_SECRET }}
       CS_WORKSPACE: ${{ secrets.CS_WORKSPACE }}
       CS_KMS_KEY_ARN: ${{ secrets.CS_KMS_KEY_ARN }}

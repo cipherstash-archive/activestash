@@ -3,8 +3,8 @@ require_relative 'lib/active_stash/version'
 Gem::Specification.new do |spec|
   spec.name          = "active_stash"
   spec.version       = ActiveStash::VERSION
-  spec.authors       = ["Dan Draper"]
-  spec.email         = ["dan@cipherstash.com"]
+  spec.authors       = ["Dan Draper", "James Sadler"]
+  spec.email         = ["dan@cipherstash.com", "james@cipherstash.com"]
 
   spec.summary       = %q{Add searchable encryption to your rails models}
   spec.description   = %q{This gem wraps stash.rb so that you can use CipherStash to add searchable encryption to your models}

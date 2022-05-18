@@ -5,11 +5,15 @@ module ActiveStash
     config.active_stash = ActiveSupport::OrderedOptions.new
 
     initializer "active_stash.configure" do |app|
-      ActiveStash.configure do |config|
-        app.config.active_stash.each { |key, value| config.public_send("#{key}=", value) }
+      # When running specs there will be no "app" passed into the block.  That's
+      # OK because we're not using this configuration method in the specs.
+      if app
+        ActiveStash.configure do |config|
+          app.config.active_stash.each { |key, value| config.public_send("#{key}=", value) }
 
-        if active_stash_credentials = app.credentials.active_stash
-          active_stash_credentials.each { |key, value| config.public_send("#{key}=", value) }
+          if active_stash_credentials = app.credentials.active_stash
+            active_stash_credentials.each { |key, value| config.public_send("#{key}=", value) }
+          end
         end
       end
 

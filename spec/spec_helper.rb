@@ -1,7 +1,10 @@
 require "bundler/setup"
 require "active_record"
 require "active_stash"
+require "active_stash/railtie"
 require "factory_bot"
+
+ActiveStash::Railtie.initializers.each(&:run)
 
 RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods

@@ -1,7 +1,5 @@
 require_relative "support/user"
 require_relative "support/migrations/create_users"
-require 'rake'
-load "tasks/active_stash.rake"
 
 RSpec.describe ActiveStash::Search do
   before(:context) do

@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "terminal-table", "~> 3.0"
 
   spec.add_development_dependency 'pg'
+  spec.add_development_dependency 'rails', '>= 6.0'
   spec.add_development_dependency 'factory_bot', '~> 6.2', '>= 6.2.1'
   spec.add_development_dependency  "rake", "~> 12.0"
   spec.add_development_dependency "rspec", "~> 3.0"

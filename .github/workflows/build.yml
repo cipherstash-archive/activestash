@@ -1,4 +1,4 @@
-name: build
+name: "ActiveStash: Test"
 on: [push, pull_request]
 jobs:
   build:
@@ -15,8 +15,8 @@ jobs:
       CS_KMS_KEY_ARN: ${{ secrets.CS_KMS_KEY_ARN }}
       CS_NAMING_KEY:  ${{ secrets.CS_NAMING_KEY }}
       RAILS_VERSION: ${{ matrix.rails-version }}
-      ACTIVE_STASH_TEST_COLLECTION_PREFIX: rails_${{ matrix.rails-version }}
-      PGDATABASE: activestash_test_rails_${{ matrix.rails-version }}
+      ACTIVE_STASH_TEST_COLLECTION_PREFIX: run_${{ github.run_number }}_job_${{ strategy.job-index }}
+      PGDATABASE: activestash_test_run_${{ github.run_number }}_job_${{ strategy.job-index }}
     steps:
       - uses: actions/checkout@v2
       - uses: ruby/setup-ruby@v1
@@ -25,7 +25,11 @@ jobs:
           bundler-cache: true
       - uses: ankane/setup-postgres@v1
         with:
-          database: activestash_test_rails_${{ matrix.rails-version }}
+          database: ${{ env.PGDATABASE }}
       # Ensures that the database is in a clean state before any test runs.
-      - run: psql -d activestash_test_rails_${{ matrix.rails-version }} -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
-      - run: bundle exec rake spec
+      - name: "Show unique job ID"
+        run: echo ${{ env.ACTIVE_STASH_TEST_COLLECTION_PREFIX }}
+      - name: "Clear out database"
+        run: psql -d ${{ env.PGDATABASE }} -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
+      - name: Run the tests
+        run: bundle exec rake spec

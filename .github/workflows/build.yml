@@ -1,7 +1,7 @@
 name: "ActiveStash: Test"
 on: [push, pull_request]
 jobs:
-  build:
+  run-specs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

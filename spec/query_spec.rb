@@ -15,12 +15,13 @@ RSpec.describe "ActiveStash::Search.query" do
   before(:context) do
     ago_2 = 2.days.ago
     ago_5 = 5.days.ago
+    ago_10 = 10.days.ago
 
     User.create!([
-      { first_name: "James", last_name: "Hetfield", gender: "M", dob: "Aug 3, 1963", created_at: 10.days.ago, title: "Mr", email: "james@metalica.net" },
-      { first_name: "Lars", last_name: "Ulrich", gender: "M", dob: "Dec 26, 1963", created_at: 10.days.ago, title: "Mr", email: "lars@metalica.net" },
-      { first_name: "Kirk", last_name: "Hammett", gender: "M", dob: "Nov 18, 1962", created_at: 10.days.ago, title: "Mr", email: "kirk@metalica.net" },
-      { first_name: "Robert", last_name: "Trujillo", gender: "M", dob: "Oct 23, 1964", created_at: 10.days.ago, title: "Mr", email: "robert@metalica.net" },
+      { first_name: "James", last_name: "Hetfield", gender: "M", dob: "Aug 3, 1963", created_at: ago_10, title: "Mr", email: "james@metalica.net" },
+      { first_name: "Lars", last_name: "Ulrich", gender: "M", dob: "Dec 26, 1963", created_at: ago_10, title: "Mr", email: "lars@metalica.net" },
+      { first_name: "Kirk", last_name: "Hammett", gender: "M", dob: "Nov 18, 1962", created_at: ago_10, title: "Mr", email: "kirk@metalica.net" },
+      { first_name: "Robert", last_name: "Trujillo", gender: "M", dob: "Oct 23, 1964", created_at: ago_10, title: "Mr", email: "robert@metalica.net" },
       { first_name: "Melanie", last_name: "Brown", gender: "F", dob: "May 29, 1975", created_at: ago_5, title: "Ms", email: "scary@spicegirls.music" },
       { first_name: "Emma", last_name: "Bunton", gender: "F", dob: "Jan 21, 1976", created_at: ago_5, title: "Ms", email: "baby@spicegirls.music" },
       { first_name: "Melanie", last_name: "Chisholm", gender: "F", dob: "Jan 12, 1974", created_at: ago_2, title: "Ms", email: "sporty@spicegirls.music" },

@@ -1,12 +1,14 @@
 require_relative "support/user"
 require_relative "support/migrations/create_users"
 
-RSpec.describe ActiveStash::Search do
+RSpec.describe "ActiveStash::Search.query" do
   before(:context) do
     User.collection.create!
+    User.delete_all
   end
 
   after(:context) do
+    User.delete_all
     User.collection.drop!
   end
 

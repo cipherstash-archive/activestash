@@ -11,32 +11,26 @@ RSpec.describe "constistency checks" do
   end
 
   describe "when the backing collection exists" do
-    before { User.collection.create! }
-    after { User.collection.drop! }
+    before(:example) { User.collection.create! }
+    after(:example) { User.collection.drop! }
 
     it "does not raise an error" do
       expect { User.collection.info }.to_not raise_error
     end
-  end
 
-  describe "when the backing collection exists but is missing an index" do
-    before { User.collection.create! }
-    after { User.collection.drop! }
-
-    it "raises an error" do
-      expect { UserInconsistent.collection(true).info }.to raise_error(ActiveStash::CollectionDivergedError)
-      UserInconsistent.collection.drop!
-      UserInconsistent.collection.create!
-      expect { UserInconsistent.collection(true).info }.to_not raise_error
+    describe "but is missing an index" do
+      it "raises an error" do
+        expect { UserInconsistent.collection(true).info }.to raise_error(ActiveStash::CollectionDivergedError)
+        UserInconsistent.collection.drop!
+        UserInconsistent.collection.create!
+        expect { UserInconsistent.collection(true).info }.to_not raise_error
+      end
     end
-  end
 
-  describe "when the backing collection exists but has an additional index" do
-    before { User.collection.create! }
-    after { User.collection.drop! }
-
-    it "raises an error" do
-      expect { UserInconsistent2.collection(true).info }.to raise_error(ActiveStash::CollectionDivergedError)
+    describe "but has an additional index" do
+      it "raises an error" do
+        expect { UserInconsistent2.collection(true).info }.to raise_error(ActiveStash::CollectionDivergedError)
+      end
     end
   end
 end

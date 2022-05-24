@@ -64,10 +64,14 @@ module ActiveStash
       end
 
       def client
-        @client ||= CipherStash::Client.new(
-          logger: ActiveStash::Logger.instance,
-          **ActiveStash.config.to_client_opts
-        )
+        # @client ||= CipherStash::Client.new(
+        #   logger: ActiveStash::Logger.instance,
+        #   **ActiveStash.config.to_client_opts
+        # )
+
+        return @client if @client
+        args = { logger: ActiveStash::Logger.instance }.merge(ActiveStash.config.to_client_opts)
+        @client = CipherStash::Client.new(**args)
       end
 
       def logger

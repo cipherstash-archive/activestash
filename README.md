@@ -8,6 +8,13 @@ It provides search functionality for ActiveRecord models that are configured to 
 When records are created or updated, they are indexed into a CipherStash collection
 which can be queried via an ActiveStash::Relation.
 
+## TL;DR - here's a video demo
+
+Searchable Encrypted Rails models with ActiveStash!
+
+[![Searchable Encrypted Rails models with ActiveStash
+](https://img.youtube.com/vi/SmRblnWV_VY/0.jpg)](https://www.youtube.com/watch?v=SmRblnWV_VY)
+
 ## What is CipherStash?
 
 Field-level encryption is a powerful tool to protect sensitive data in your Active Record models.
@@ -28,6 +35,7 @@ Queries are delegated to CipherStash but return ActiveRecord models so things ju
 
 If you've used Elasticsearch with gems like [Searchkick](https://github.com/ankane/searchkick), this pattern will be familiar to you.
 
+![Active Stash Lookaside Pattern](lookaside.png)
 
 ## Getting a workspace
 

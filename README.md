@@ -126,7 +126,7 @@ Range indexes on strings typically only work for ordering.
 
 | Indexes Created | Allowed Operators | Example |
 |-----------------|-------------------|---------------------|
-| `match`         | `=~`              | `User.query { |q| q.name =~ "foo" }` |
+| `match`         | `=~`              | `User.query { \|q\| q.name =~ "foo" }` |
 | `exact`         | `==`              | `User.query(email: "foo@example.com)` |
 | `range`         | `<`, `<=`, `==`, `>=`, `>` | `User.query.order(:email)` |
 

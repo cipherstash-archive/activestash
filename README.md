@@ -1,12 +1,10 @@
 # ActiveStash
 
-ActiveStash is the Rails specific gem for using [CipherStash](https://cipherstash.com).
+[ActiveStash](https://cipherstash.com/activestash) is the Rails-specific gem for using [CipherStash](https://cipherstash.com).
 
-It provides search functionality for ActiveRecord models that are configured to use field level encryption (using [Lockbox](https://github.com/ankane/lockbox) or
-[EncryptedRecord](https://guides.rubyonrails.org/active_record_encryption.html)).
+ActiveStash gives you encryption search on ActiveRecord models using application level encryption (using libraries like [Lockbox](https://github.com/ankane/lockbox) and [ActiveRecord Encryption](https://guides.rubyonrails.org/active_record_encryption.html)).
 
-When records are created or updated, they are indexed into a CipherStash collection
-which can be queried via an ActiveStash::Relation.
+When records are created or updated, they are indexed into a CipherStash collection which can be queried via an `ActiveStash::Relation`.
 
 ## TL;DR - here's a video demo
 
@@ -37,10 +35,74 @@ If you've used Elasticsearch with gems like [Searchkick](https://github.com/anka
 
 ![Active Stash Lookaside Pattern](lookaside.png)
 
-## Getting a workspace
+## Getting started
 
-To use `ActiveStash` you need a CipherStash account and workspace.
-See our [Getting Started Guide](https://docs.cipherstash.com/tutorials/getting-started/index.html) to get one set up.
+1. Add ActiveStash to your `Gemfile`:
+
+```
+gem "active_stash"
+```
+
+2. Install the new dependencies:
+
+```
+➜  bundle install
+```
+
+3. [Create a CipherStash account](https://docs.cipherstash.com/tutorials/getting-started/create-an-account.html) (which will provision you a workspace) and then login:
+
+```bash
+➜  rake active_stash:login[YOURWORKSPACEID]
+```
+
+Note: If you are using `zsh` you may need to escape the brackets
+
+```bash
+rake active_stash:login\['WorkspaceId'\]
+```
+
+4. Any model you use with `ActiveStash::Search` needs to have a `stash_id` column, to link search results back to database records.
+
+For example, to add a `stash_id` column to the database table for the `User` model, add the below migration:
+
+```sh
+$ rails g migration AddStashIdToUser stash_id:string:index
+$ rails db:migrate
+```
+
+5. Add the `ActiveStash::Search` mixin to your user model, and declare what fields are searchable:
+
+```ruby
+# app/models/user.rb
+class User < ApplicationRecord
+  include ActiveStash::Search
+
+  # Previously added application-level encryption, by either ActiveRecord Encryption or Lockbox
+  encrypts :name, :email
+  encrypts :dob, type: :date
+
+  # Fields that will be indexed into CipherStash
+  stash_index :name, :email, :dob
+
+  self.ignored_columns = %w[name email dob]
+end
+```
+
+6. Reindex your existing data into CipherStash with ActiveStash
+
+```
+➜  rails active_stash:reindexall
+```
+
+7. Query a user record:
+
+```bash
+$ rails c
+ >> User.where(email: "grace@example.com").count
+ => 0 # no records, because the database isn't searchable
+ >> User.query(email: "grace@example.com").count
+ => 1 # a record, because CipherStash makes your encrypted database searchable
+```
 
 ## Installation
 
@@ -90,6 +152,7 @@ ActiveStash supports all CipherStash configuration described in [the docs](https
 In addition to configuration via JSON files and environment variables, ActiveStash supports Rails config and credentials.
 
 For example, to use a specific profile in development, you could include the following in `config/environments/development.rb`:
+
 ```ruby
 Rails.application.configure do
   config.active_stash.profile_name = "dev-profile"
@@ -99,12 +162,14 @@ end
 ```
 
 For secrets, you can add ActiveStash config to your credentials (`rails credentials:edit --environment <env>`):
+
 ```yaml
 active_stash:
   aws_secret_access_key: your_secret
 ```
 
 You can also use an initializer (e.g. `config/initializers/active_stash.rb`):
+
 ```ruby
 ActiveStash.configure do |config|
   config.aws_secret_access_key = Rails.application.credentials.aws.secret_access_key
@@ -124,18 +189,18 @@ These are as follows:
 `:string` and `:text` types automatically create the following indexes.
 Range indexes on strings typically only work for ordering.
 
-| Indexes Created | Allowed Operators | Example |
-|-----------------|-------------------|---------------------|
-| `match`         | `=~`              | `User.query { \|q\| q.name =~ "foo" }` |
-| `exact`         | `==`              | `User.query(email: "foo@example.com)` |
-| `range`         | `<`, `<=`, `==`, `>=`, `>` | `User.query.order(:email)` |
+| Indexes Created | Allowed Operators          | Example                                |
+| --------------- | -------------------------- | -------------------------------------- |
+| `match`         | `=~`                       | `User.query { \|q\| q.name =~ "foo" }` |
+| `exact`         | `==`                       | `User.query(email: "foo@example.com)`  |
+| `range`         | `<`, `<=`, `==`, `>=`, `>` | `User.query.order(:email)`             |
 
 ### Numeric Types
 
 `:timestamp`, `:date`, `:datetime`, `:float`, `:decimal`, and `:integer` types all have `range` indexes created.
 
-| Indexes Created | Allowed Operators | Example |
-|-----------------|-------------------|---------------------|
+| Indexes Created | Allowed Operators                     | Example                                     |
+| --------------- | ------------------------------------- | ------------------------------------------- |
 | `range`         | `<`, `<=`, `==`, `>=`, `>`, `between` | `User.query { \|q\| q.dob > 20.years.ago }` |
 
 ### Overriding Automatically Created Indexes
@@ -207,7 +272,7 @@ User.reindex
 ```
 
 Depending on how much data you have, reindexing may take a while but you only need to do it once.
-*ActiveStash will automatically index (and delete) data as it records are created, updated and deleted.*
+_ActiveStash will automatically index (and delete) data as it records are created, updated and deleted._
 
 ## Current limitations
 
@@ -225,20 +290,20 @@ Support for zero-downtime Collection schema changes and reindexing is being acti
 
 ### When to Reindex Your Collection
 
-These are the rules for when you *must* re-index your collection:
+These are the rules for when you _must_ re-index your collection:
 
 1. You have imported, deleted or updated data in the table that backs your ActiveStash model via some external mechanism, OR
-2. You have added or removed a string/text column from the table that backs your ActiveStash model *and* you are using a `dynamic_match` index in your model
+2. You have added or removed a string/text column from the table that backs your ActiveStash model _and_ you are using a `dynamic_match` index in your model
 
 ### When to Drop, Recreate and Reindex Your Collection
 
-This is the rule to determine when you *must* drop, recreate and reindex your collection:
+This is the rule to determine when you _must_ drop, recreate and reindex your collection:
 
 1. Whenever add or modify one or more ActiveStash index definitions in your model
 
 See [Current Limitations](#current-limitations) for instructions on what commands to run to accomplish this.
 
-*NOTE:* technically, you do not need to reindex your collection if you *remove* an index definition on your model. A removed index definition will not remove the index stored in CipherStash and it will not be useable in queries, but it will still be incurring CPU & network costs to keep it up to date.
+_NOTE:_ technically, you do not need to reindex your collection if you _remove_ an index definition on your model. A removed index definition will not remove the index stored in CipherStash and it will not be useable in queries, but it will still be incurring CPU & network costs to keep it up to date.
 
 ## Running Queries
 
@@ -249,7 +314,7 @@ For example, to find a user by email address:
 User.query(email: "person@example.com")
 ```
 
-This will return an ActiveStash::Relation which extends `ActiveRecord::Relation` so you can chain *most* methods
+This will return an ActiveStash::Relation which extends `ActiveRecord::Relation` so you can chain _most_ methods
 as you normally would!
 
 To constrain by multiple fields, include them in the hash:
@@ -405,7 +470,6 @@ rake active_stash:collections:create[User]
 
 ## Development
 
-
 After checking out the repo, run `bin/setup` to install dependencies.
 
 The test suite depends on a running postgres instance being available on localhost. You'll need to export a `PGUSER` env var before running the test suite.
@@ -417,7 +481,6 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/cipherstash/activestash. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/cipherstash/activestash/blob/master/CODE_OF_CONDUCT.md).
-
 
 ## License
 

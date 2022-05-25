@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{Add searchable encryption to your rails models}
   spec.description   = %q{This gem wraps stash.rb so that you can use CipherStash to add searchable encryption to your models}
-  spec.homepage      = "https://cipherstash.com"
+  spec.homepage      = "https://cipherstash.com/activestash"
   spec.license = "LicenseRef-LICENSE"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.3.0")
 

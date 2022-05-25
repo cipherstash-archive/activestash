@@ -7,7 +7,7 @@ jobs:
       fail-fast: false
       matrix:
         rails-version: [6, 7]
-        ruby-version: [2.7.6, 3.0.4, 3.1.2]
+        ruby-version: [2.7, 3.0, 3.1]
     env:
       BUNDLE_GEMFILE: gemfiles/rails${{ matrix.rails-version }}.gemfile
       RSPEC_FULL_BACKTRACE: yes

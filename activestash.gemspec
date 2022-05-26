@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
   spec.metadata["mailing_list_uri"] = "https://discuss.cipherstash.com"
   spec.metadata["funding_uri"] = "https://cipherstash.com/pricing"
 
-  spec.add_runtime_dependency "cipherstash-client", ">= 0.10.2"
+  spec.add_runtime_dependency "cipherstash-client", ">= 0.10.4"
   spec.add_runtime_dependency "activerecord"
   spec.add_runtime_dependency "terminal-table", "~> 3.0"
 

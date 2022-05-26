@@ -20,7 +20,6 @@ Gem::Specification.new do |spec|
   spec.metadata["bug_tracker_uri"] = "https://github.com/cipherstash/activestash/issues"
   spec.metadata["documentation_uri"] = "https://rubydoc.info/gems/active_stash"
   spec.metadata["mailing_list_uri"] = "https://discuss.cipherstash.com"
-  spec.metadata["funding_uri"] = "https://cipherstash.com/pricing"
 
   spec.add_runtime_dependency "cipherstash-client", ">= 0.10.4"
   spec.add_runtime_dependency "activerecord"

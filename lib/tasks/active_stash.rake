@@ -1,6 +1,7 @@
 require "cipherstash/client"
 require "active_stash"
 require "terminal-table"
+require "launchy"
 
 def stash_enabled_models
   Dir.glob("#{Rails.root}/app/models/*.rb").each { |file| require file }
@@ -21,6 +22,21 @@ def error(message)
 end
 
 namespace :active_stash do
+  desc "Signup"
+  task(:signup => :environment) do
+    info("")
+    info("")
+    info("")
+    info("Opening your browser to complete signup.......")
+    info("")
+    info("")
+    info("")
+    Launchy.open "https://console.cipherstash.com/?signup=active-stash"
+    info("")
+    info("")
+    info("")
+  end
+
   desc "Login to stash workspace"
   task :login, [:workspace] do |task, args|
     CipherStash::Client::Profile.create(ENV.fetch("CS_PROFILE_NAME", "default"), ActiveStash::Logger.instance, workspace: args[:workspace])

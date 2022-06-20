@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "activerecord"
   spec.add_runtime_dependency "terminal-table", "~> 3.0"
   spec.add_runtime_dependency "launchy", "~> 2.5"
+  spec.add_runtime_dependency 'net-http', '~> 0.2.2' # https://github.com/ruby/net-protocol/issues/10
 
   spec.add_development_dependency 'pg'
   spec.add_development_dependency 'rails', '>= 6.0'
@@ -32,10 +33,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency  "rake", "~> 12.0"
   spec.add_development_dependency "rspec", "~> 3.0"
 
-  if RUBY_VERSION >= '3.0'
-    spec.add_development_dependency 'net-http', '~> 0.2.2'
-  end
-  
   spec.files = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*"]
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }

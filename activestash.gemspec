@@ -25,8 +25,12 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "activerecord"
   spec.add_runtime_dependency "terminal-table", "~> 3.0"
   spec.add_runtime_dependency "launchy", "~> 2.5"
-  spec.add_runtime_dependency 'net-http', '~> 0.2.2' # https://github.com/ruby/net-protocol/issues/10
 
+  if RUBY_VERSION < '3.1'
+    # https://github.com/ruby/net-protocol/issues/10
+    # https://github.com/rails/rails/pull/44175
+    spec.add_runtime_dependency 'net-http', '~> 0.2.2'
+  end
   spec.add_development_dependency 'pg'
   spec.add_development_dependency 'rails', '>= 6.0'
   spec.add_development_dependency 'factory_bot', '~> 6.2', '>= 6.2.1'

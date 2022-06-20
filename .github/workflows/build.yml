@@ -36,5 +36,7 @@ jobs:
         run: echo ${{ env.ACTIVE_STASH_TEST_COLLECTION_PREFIX }}
       - name: "Clear out database"
         run: psql -d ${{ env.PGDATABASE }} -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
+      - name: "Install default uri gem version"
+        run: gem install --default -v0.11.0 uri
       - name: Run the tests
         run: bundle exec rake spec

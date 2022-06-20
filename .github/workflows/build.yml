@@ -20,8 +20,8 @@ jobs:
       CS_KMS_KEY_ARN: ${{ secrets.CS_KMS_KEY_ARN }}
       CS_NAMING_KEY:  ${{ secrets.CS_NAMING_KEY }}
       RAILS_VERSION: ${{ matrix.rails-version }}
-      ACTIVE_STASH_TEST_COLLECTION_PREFIX: run_${{ github.run_number }}_job_${{ strategy.job-index }}
-      PGDATABASE: activestash_test_run_${{ github.run_number }}_job_${{ strategy.job-index }}
+      ACTIVE_STASH_TEST_COLLECTION_PREFIX: run_${{ github.run_number }}.${{ env.GITHUB_RUN_ATTEMPT }}_job_${{ strategy.job-index }}
+      PGDATABASE: activestash_test_run_${{ github.run_number }}.${{ env.GITHUB_RUN_ATTEMPT }}_job_${{ strategy.job-index }}
     steps:
       - uses: actions/checkout@v2
       - uses: ruby/setup-ruby@v1

@@ -91,6 +91,14 @@ RSpec.describe "ActiveStash::Search.query" do
     end
   end
 
+  describe "#query match" do
+    it "raises error if trying to match a regex" do
+      expect do
+        User.query { |q| q.first_name =~ /Mel/ }
+      end.to raise_error(ActiveStash::QueryError, /regular expressions/)
+    end
+  end
+
   describe "limit and offset" do
     it "by exact gender (limit=5)" do
       expect(User.query(gender: "F").limit(4).length).to eq(4)

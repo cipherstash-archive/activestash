@@ -3,15 +3,11 @@ require 'forwardable'
 module ActiveStash
   class CollectionProxy
     extend Forwardable
-    def_delegators :collection, :query
-    def_delegators :@model, :collection_name, :stash_indexes
+    def_delegators :collection, :query, :upsert, :streaming_upsert
+    def_delegators :@model, :collection_name, :cipherstash_metrics, :stash_indexes
 
     def initialize(model)
       @model = model
-    end
-
-    def upsert(stash_id, attrs, store_record:)
-      collection.upsert(stash_id, attrs, store_record: store_record)
     end
 
     def schema

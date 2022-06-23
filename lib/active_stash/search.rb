@@ -46,7 +46,7 @@ module ActiveStash # :nodoc:
   # You can even order by strings:
   #
   #     User.query(verified: true).order(:first_name)
-  #  
+  #
   # Or to use limit and offset:
   #
   #     User.query(verified: true).limit(10).offset(20)
@@ -64,7 +64,7 @@ module ActiveStash # :nodoc:
   # For example, to find all users born in or after 1998:
   #
   #     User.query { |q| q.dob > "1998-01-01".to_date }
-  #       
+  #
   # Or, to perform a free-text search on name:
   #
   #     User.query { |q| q.name =~ "Dan" }
@@ -103,8 +103,7 @@ module ActiveStash # :nodoc:
       # Note: It turns out that Lockbox doesn't support serializable_hash
       self.class.collection.upsert(
         self.stash_id,
-        self.stash_attrs,
-        store_record: false
+        self.stash_attrs
       )
     end
 

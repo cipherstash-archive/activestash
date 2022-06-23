@@ -165,9 +165,14 @@ module ActiveStash # :nodoc:
 
       # Reindex all records into CipherStash
       def reindex
-        find_each do |record|
-          record.save!(touch: false)
+        records = find_each.lazy.map do |r|
+          if r.stash_id.nil?
+            raise "Cannot index record ID=#{r.id} without a stash ID"
+          end
+          { id: r.stash_id, record: r.attributes }
         end
+
+        collection.streaming_upsert(records)
 
         true
       end

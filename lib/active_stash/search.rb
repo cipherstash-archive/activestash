@@ -126,7 +126,7 @@ module ActiveStash # :nodoc:
       end
 
     module ClassMethods
-      attr_writer :collection_name
+      attr_writer :collection_name, :cipherstash_metrics
 
       # FIXME: A bunch of things break when we use this as a default scope
       #def default_scope
@@ -184,6 +184,10 @@ module ActiveStash # :nodoc:
       # Defaults to the name of the table
       def collection_name
         @collection_name || table_name
+      end
+
+      def cipherstash_metrics
+        @cipherstash_metrics ||= CipherStash::Client::Metrics::Null.new
       end
 
       def stash_indexes # :nodoc:

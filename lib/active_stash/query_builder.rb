@@ -81,8 +81,15 @@ module ActiveStash
       end
 
       def =~(value)
-        @op ||= :match
-        set(value)
+        case value
+        when ::String
+          @op ||= :match
+          set(value)
+        when ::Regexp
+          ::Kernel.raise ::ActiveStash::QueryError, "regular expressions are not yet supported for matching"
+        else
+          ::Kernel.raise ::ActiveStash::QueryError, "unknown value type passed to =~: #{value.inspect}"
+        end
       end
 
       def >(value)

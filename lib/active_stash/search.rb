@@ -46,7 +46,7 @@ module ActiveStash # :nodoc:
   # You can even order by strings:
   #
   #     User.query(verified: true).order(:first_name)
-  #  
+  #
   # Or to use limit and offset:
   #
   #     User.query(verified: true).limit(10).offset(20)
@@ -64,7 +64,7 @@ module ActiveStash # :nodoc:
   # For example, to find all users born in or after 1998:
   #
   #     User.query { |q| q.dob > "1998-01-01".to_date }
-  #       
+  #
   # Or, to perform a free-text search on name:
   #
   #     User.query { |q| q.name =~ "Dan" }
@@ -103,8 +103,7 @@ module ActiveStash # :nodoc:
       # Note: It turns out that Lockbox doesn't support serializable_hash
       self.class.collection.upsert(
         self.stash_id,
-        self.stash_attrs,
-        store_record: false
+        self.stash_attrs
       )
     end
 
@@ -127,7 +126,7 @@ module ActiveStash # :nodoc:
       end
 
     module ClassMethods
-      attr_writer :collection_name
+      attr_writer :collection_name, :cipherstash_metrics
 
       # FIXME: A bunch of things break when we use this as a default scope
       #def default_scope
@@ -166,9 +165,14 @@ module ActiveStash # :nodoc:
 
       # Reindex all records into CipherStash
       def reindex
-        find_each do |record|
-          record.save!(touch: false)
+        records = find_each.lazy.map do |r|
+          if r.stash_id.nil?
+            r.update_columns(stash_id: SecureRandom.uuid)
+          end
+          { id: r.stash_id, record: r.attributes }
         end
+
+        collection.streaming_upsert(records)
 
         true
       end
@@ -185,6 +189,10 @@ module ActiveStash # :nodoc:
       # Defaults to the name of the table
       def collection_name
         @collection_name || table_name
+      end
+
+      def cipherstash_metrics
+        @cipherstash_metrics ||= CipherStash::Client::Metrics::Null.new
       end
 
       def stash_indexes # :nodoc:

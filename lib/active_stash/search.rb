@@ -167,7 +167,7 @@ module ActiveStash # :nodoc:
       def reindex
         records = find_each.lazy.map do |r|
           if r.stash_id.nil?
-            raise "Cannot index record ID=#{r.id} without a stash ID"
+            r.update_columns(stash_id: SecureRandom.uuid)
           end
           { id: r.stash_id, record: r.attributes }
         end

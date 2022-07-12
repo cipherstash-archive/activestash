@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3]
+
+### Fixed
+
+* Issue where queries would break due to an incompatible change in the ruby-client
+
 ## [0.4.2]
 
 ### Fixed

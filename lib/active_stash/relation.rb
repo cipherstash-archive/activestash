@@ -5,8 +5,8 @@ module ActiveStash
     include ActiveStash::RelationHelp::Compatability
 
     # TODO: Add count aggregate support
-    stash_unsupported(:where, :count, :delete_all)
-    stash_wrap(:select, :all, :includes, :joins, :annotate, :destroy_all)
+    stash_unsupported(:where, :count, :delete_all, :destroy_all)
+    stash_wrap(:select, :all, :includes, :joins, :annotate)
 
     delegate :name, :inspect, to: :@scope
 

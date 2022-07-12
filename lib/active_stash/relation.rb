@@ -67,7 +67,7 @@ module ActiveStash
               *constraint.values
             )
           end
-        end.records.map(&:id)
+        end.records.map(&:uuid)
 
         relation = @scope.where(stash_id: ids)
         relation = relation.in_order_of(:stash_id, ids) if @stash_order

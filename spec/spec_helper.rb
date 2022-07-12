@@ -12,6 +12,8 @@ RSpec.configure do |config|
   config.full_backtrace = ENV.key?("RSPEC_FULL_BACKTRACE")
 
   config.before(:suite) do
+    FactoryBot.find_definitions
+
     ActiveRecord::Base.establish_connection(
       adapter: 'postgresql',
       host: 'localhost',

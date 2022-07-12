@@ -5,8 +5,8 @@ module ActiveStash
     include ActiveStash::RelationHelp::Compatability
 
     # TODO: Add count aggregate support
-    stash_unsupported(:where, :count)
-    stash_wrap(:select, :all, :includes, :joins, :annotate)
+    stash_unsupported(:where, :count, :delete_all)
+    stash_wrap(:select, :all, :includes, :joins, :annotate, :destroy_all)
 
     delegate :name, :inspect, to: :@scope
 
@@ -61,6 +61,11 @@ module ActiveStash
     def order(*args)
       @stash_order = process_order_args(*args)
       self
+    end
+
+    def exists?
+      self.load
+      !self.first.blank?
     end
 
     def load

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+* Add more information detailing next steps, to output of signup rake task.
+
 ## [0.4.3]
 
 ### Fixed

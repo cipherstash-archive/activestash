@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+* Bump min cipherstash-client version to v0.14 (includes filter indexes and bug fixes)
+
 ## [0.4.4]
 
 ### Changed
@@ -66,4 +70,3 @@ Indexing now ignores `json`, `jsonb` and `uuid` types. These may be added later.
 ## [0.1.1]
 
 First public release
-

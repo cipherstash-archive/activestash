@@ -1,6 +1,7 @@
 require "active_stash/version"
 require "active_stash/error"
 require "active_stash/search"
+require "active_stash/pseudo_data"
 require "active_stash/collection_proxy"
 require "active_stash/schema_builder"
 require "active_stash/query_builder"

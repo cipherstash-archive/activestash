@@ -35,6 +35,7 @@ module ActiveStash # :nodoc:
   #
   # ## Example
   #
+  #```
   # class User < ActiveRecord::Base
   #   encrypts :first_name
   #   encrypts :last_name
@@ -42,6 +43,8 @@ module ActiveStash # :nodoc:
   #
   #   fake :first_name, Faker::Name
   #   fake :email, -> (user) { Faker::Internet.email(name: user.first_name) }
+  # end
+  # ```
   #
   # ## Production
   #

@@ -27,5 +27,13 @@ RSpec.describe "ActiveStash::Validations" do
         create(:user, email: "person@example.net")
       }.to raise_error(ActiveRecord::RecordInvalid, "Validation failed: Email already exists")
     end
+
+    it "if validation is skipped then creation of a new user succeeds" do
+      expect {
+        user = build(:user, email: "person@example.net")
+        user.skip_validations = true
+        user.save!
+      }.to_not raise_error
+    end
   end
 end

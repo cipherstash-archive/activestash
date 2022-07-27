@@ -4,7 +4,7 @@ require "terminal-table"
 require "launchy"
 
 def stash_enabled_models
-  Dir.glob("#{Rails.root}/app/models/*.rb").each { |file| require file }
+  Dir.glob("#{Rails.root}/app/models/*.rb").each { |file| Module.const_get("::" + File.basename(file, ".rb").camelize) }
   ActiveRecord::Base.descendants.select do |m|
     if m.respond_to?(:is_stash_model?) && block_given?
       yield m

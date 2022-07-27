@@ -344,6 +344,16 @@ To order all records by `dob` descending and then `created_at`, do (note the cal
 User.query.order(dob: :desc, :created_at)
 ```
 
+### Retrieving just Stash IDs
+
+If you need to "join" the results of an ActiveStash query against another model, it can be wasteful to load all the model objects just to have to throw them away again.
+In this case, you can use the `ActiveStash::Relation#stash_ids` method to execute the query and only return the record IDs, like this example to find young employees:
+
+```ruby
+youngster_ids = User.query { |q| q.dob > "2000-01-01".to_date }.stash_ids
+young_employees = Employee.joins(:user).where("users.stash_id IN (?)", youngster_ids)
+```
+
 ### Advanced Queries
 
 More advanced queries can be performed by passing a block to `query`.

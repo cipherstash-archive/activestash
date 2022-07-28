@@ -29,7 +29,7 @@ namespace :active_stash do
     info("")
     info("")
     info("")
-    info("You are being redirected to https://console.cipherstash.com/?signup=active-stash to complete your signup..")
+    info("You are being redirected to https://cipherstash.com/signup/start?source=active_stash_rake to complete your signup.")
     info("")
     info("")
     info("NEXT STEPS:")
@@ -47,7 +47,7 @@ namespace :active_stash do
     info("")
     info("")
     info("")
-    Launchy.open "https://console.cipherstash.com/?signup=active-stash"
+    Launchy.open "https://cipherstash.com/signup/start?source=active_stash_rake"
     info("")
     info("")
     info("")

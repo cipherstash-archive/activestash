@@ -8,9 +8,13 @@ module ActiveStash
     stash_unsupported(:where, :count)
     stash_wrap(:select, :all, :includes, :joins, :annotate)
 
+    delegate :name, :inspect, to: :@scope
+
     def initialize(scope)
       @klass = scope
       @scope = scope
+
+      super
     end
 
     def query(*args, &block)
@@ -19,12 +23,12 @@ module ActiveStash
     end
 
     def limit(value)
-      @limit = value
+      self.limit_value = value
       self
     end
 
     def offset(value)
-      @offset = value
+      self.offset_value = value
       self
     end
 
@@ -76,10 +80,6 @@ module ActiveStash
 
     def stash_query?
       @query || @stash_order
-    end
-
-    def inspect
-      @scope.inspect
     end
 
     protected

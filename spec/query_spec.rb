@@ -187,4 +187,11 @@ RSpec.describe "ActiveStash::Search.query" do
       }.to raise_error(ActiveModel::MissingAttributeError)
     end
   end
+
+  describe "#stash_ids" do
+    it "returns a list of record IDs when chained after query" do
+      result = User.query(first_name: "Emma").stash_ids
+      expect(result).to match([match(%r{\A\h{8}(-\h{4}){3}-\h{12}\z})])
+    end
+  end
 end

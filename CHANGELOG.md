@@ -7,9 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.4]
+
+### Added
+
+* Add ability to retrieve just stash IDs.
+
 ### Changed
 
 * Update readme to remove usage of count in example query.
+* Update rake signup task redirect flow.
+
+### Fixed
+
+* Duplicate loading of ActiveRecord models.
 
 ## [0.4.4]
 

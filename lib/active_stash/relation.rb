@@ -8,9 +8,13 @@ module ActiveStash
     stash_unsupported(:where, :count)
     stash_wrap(:select, :all, :includes, :joins, :annotate)
 
+    delegate :name, :inspect, to: :@scope
+
     def initialize(scope)
       @klass = scope
       @scope = scope
+
+      super
     end
 
     def query(*args, &block)
@@ -19,12 +23,12 @@ module ActiveStash
     end
 
     def limit(value)
-      @limit = value
+      self.limit_value = value
       self
     end
 
     def offset(value)
-      @offset = value
+      self.offset_value = value
       self
     end
 
@@ -45,6 +49,15 @@ module ActiveStash
       end
     end
 
+    def stash_ids
+      if stash_query?
+        load_stash_ids_if_needed
+        @stash_ids
+      else
+        raise "Can't request stash IDs on a non-stash query"
+      end
+    end
+
     def order(*args)
       @stash_order = process_order_args(*args)
       self
@@ -54,23 +67,10 @@ module ActiveStash
       if stash_query?
         return @records if @loaded
 
-        # Call stash ruby client low-level API
-        ids = @klass.collection.query(limit: @limit, offset: @offset) do |q|
-          (@stash_order || []).each do |ordering|
-            q.order_by(ordering[:index_name], ordering[:direction])
-          end
+        load_stash_ids_if_needed
 
-          @query.constraints.each do |constraint|
-            q.add_constraint(
-              constraint.index.name,
-              constraint.op.to_s,
-              *constraint.values
-            )
-          end
-        end.records.map(&:uuid)
-
-        relation = @scope.where(stash_id: ids)
-        relation = relation.in_order_of(:stash_id, ids) if @stash_order
+        relation = @scope.where(stash_id: @stash_ids)
+        relation = relation.in_order_of(:stash_id, @stash_ids) if @stash_order
         @loaded = true
         @records = relation.load
       else
@@ -80,10 +80,6 @@ module ActiveStash
 
     def stash_query?
       @query || @stash_order
-    end
-
-    def inspect
-      @scope.inspect
     end
 
     protected
@@ -103,6 +99,28 @@ module ActiveStash
         else
           process_order_args(field_or_hash => :ASC)
         end
+      end
+    end
+
+    private
+
+    def load_stash_ids_if_needed
+      return unless @stash_ids.nil?
+
+      @klass.collection.query(limit: self.limit_value, offset: self.offset_value) do |q|
+        (@stash_order || []).each do |ordering|
+          q.order_by(ordering[:index_name], ordering[:direction])
+        end
+
+        @query.constraints.each do |constraint|
+          q.add_constraint(
+            constraint.index.name,
+            constraint.op.to_s,
+            *constraint.values
+          )
+        end
+      end.records.map(&:uuid).tap do |ids|
+        @stash_ids = ids
       end
     end
   end

@@ -98,10 +98,16 @@ end
 
 ```bash
 $ rails c
- >> User.where(email: "grace@example.com").count
- => 0 # no records, because the database isn't searchable
- >> User.query(email: "grace@example.com").count
- => 1 # a record, because CipherStash makes your encrypted database searchable
+ >> User.where(email: "grace@example.com")
+ => []  # no records, because the database isn't searchable
+ >> User.query(email: "grace@example.com")
+ => [
+   #<User:0x00000001138a42b0                                      
+  id: 7,
+  name: "Grace Hopper",
+  email: "grace@example.com",
+  stash_id: "6481b6dd-8e0f-456c-ac27-6c668ca539f2",
+ ] # a record, because CipherStash makes your encrypted database searchable
 ```
 
 ## Installation

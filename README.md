@@ -49,9 +49,10 @@ gem "active_stash"
 ➜  bundle install
 ```
 
-3. [Create a CipherStash account](https://docs.cipherstash.com/tutorials/getting-started/create-an-account.html) (which will provision you a workspace) and then login:
+3. Sign up for a CipherStash account, and then login with the provided Workspace ID:
 
 ```bash
+➜  rake active_stash:signup
 ➜  rake active_stash:login[YOURWORKSPACEID]
 ```
 

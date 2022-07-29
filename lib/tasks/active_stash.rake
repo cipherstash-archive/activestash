@@ -24,12 +24,13 @@ end
 namespace :active_stash do
   desc "Signup"
   task(:signup => :environment) do
+    redirect_url = "https://cipherstash.com/signup/rake"
     info("")
     info("")
     info("")
     info("")
     info("")
-    info("You are being redirected to https://cipherstash.com/signup/start?source=active_stash_rake to complete your signup.")
+    info("You are being redirected to #{redirect_url} to complete your signup.")
     info("")
     info("")
     info("NEXT STEPS:")
@@ -47,7 +48,7 @@ namespace :active_stash do
     info("")
     info("")
     info("")
-    Launchy.open "https://cipherstash.com/signup/start?source=active_stash_rake"
+    Launchy.open(redirect_url)
     info("")
     info("")
     info("")

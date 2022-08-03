@@ -2,7 +2,7 @@
 
 [ActiveStash](https://cipherstash.com/activestash) is the Rails-specific gem for using [CipherStash](https://cipherstash.com).
 
-ActiveStash gives you encryption search on ActiveRecord models using application level encryption (using libraries like [Lockbox](https://github.com/ankane/lockbox) and [ActiveRecord Encryption](https://guides.rubyonrails.org/active_record_encryption.html)).
+ActiveStash gives you encrypted search on ActiveRecord models using application level encryption (using libraries like [Lockbox](https://github.com/ankane/lockbox) and [ActiveRecord Encryption](https://guides.rubyonrails.org/active_record_encryption.html)).
 
 When records are created or updated, they are indexed into a CipherStash collection which can be queried via an `ActiveStash::Relation`.
 

@@ -72,7 +72,10 @@ module ActiveStash
         relation = @scope.where(stash_id: @stash_ids)
         relation = relation.in_order_of(:stash_id, @stash_ids) if @stash_order
         @loaded = true
-        @records = relation.load
+        ActiveStash::Logger.debug("Hydrating #{@stash_ids.length} stash IDs")
+        @records = relation.load.tap do |r|
+          ActiveStash::Logger.debug("Loaded #{r.length} records")
+        end
       else
         super
       end
@@ -107,6 +110,7 @@ module ActiveStash
     def load_stash_ids_if_needed
       return unless @stash_ids.nil?
 
+      ActiveStash::Logger.debug("Issuing query: #{@query.inspect}")
       @klass.collection.query(limit: self.limit_value, offset: self.offset_value) do |q|
         (@stash_order || []).each do |ordering|
           q.order_by(ordering[:index_name], ordering[:direction])
@@ -120,6 +124,7 @@ module ActiveStash
           )
         end
       end.records.map(&:uuid).tap do |ids|
+        ActiveStash::Logger.debug("Query returned #{ids.length} record(s)")
         @stash_ids = ids
       end
     end

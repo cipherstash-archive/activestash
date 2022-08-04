@@ -1,35 +1,36 @@
 require_relative "../support/user"
-require_relative "../support/user_inconsistent"
-require_relative "../support/user_inconsistent2"
-require_relative "../support/migrations/create_users"
+require_relative "../support/user_inconsistent_missing_index"
+require_relative "../support/user_inconsistent_extra_index"
 
-RSpec.describe "constistency checks" do
+RSpec.describe "consistency checks" do
   describe "when no collection exists" do
+    before(:each) do
+      User.collection.drop!
+    end
+
+    after(:each) do
+      User.collection.create!
+    end
+
     it "raises an error" do
       expect { User.collection.info }.to raise_error(ActiveStash::NoCollectionError)
     end
   end
 
   describe "when the backing collection exists" do
-    before(:example) { User.collection.create! }
-    after(:example) { User.collection.drop! }
-
     it "does not raise an error" do
       expect { User.collection.info }.to_not raise_error
     end
 
     describe "but is missing an index" do
       it "raises an error" do
-        expect { UserInconsistent.collection(true).info }.to raise_error(ActiveStash::CollectionDivergedError)
-        UserInconsistent.collection.drop!
-        UserInconsistent.collection.create!
-        expect { UserInconsistent.collection(true).info }.to_not raise_error
+        expect { UserInconsistentMissingIndex.collection(true).info }.to raise_error(ActiveStash::CollectionDivergedError)
       end
     end
 
     describe "but has an additional index" do
       it "raises an error" do
-        expect { UserInconsistent2.collection(true).info }.to raise_error(ActiveStash::CollectionDivergedError)
+        expect { UserInconsistentExtraIndex.collection(true).info }.to raise_error(ActiveStash::CollectionDivergedError)
       end
     end
   end

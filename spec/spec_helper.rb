@@ -20,11 +20,11 @@ RSpec.configure do |config|
       database: ENV["PGDATABASE"] || 'activestash_test'
     )
 
+    CreateUsers.migrate(:down) rescue nil
     CreateUsers.migrate(:up)
-  end
 
-  config.after(:suite) do
-    CreateUsers.migrate(:down)
+    User.collection.drop! rescue nil
+    User.collection.create!
   end
 
   # Enable flags like --only-failures and --next-failure

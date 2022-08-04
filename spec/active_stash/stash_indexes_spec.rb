@@ -1,18 +1,10 @@
-require_relative "../support/user2"
-require_relative "../support/migrations/create_users2"
+require_relative "../support/user"
+require_relative "../support/migrations/create_users"
 
 require_relative "../support/matchers"
 
 RSpec.describe ActiveStash::StashIndexes do
-  before(:all) do
-    CreateUsers2.migrate(:up)
-  end
-
-  after(:all) do
-    CreateUsers2.migrate(:down)
-  end
-
-  let(:indexes) { User2.stash_indexes }
+  let(:indexes) { User.stash_indexes }
 
   describe "first_name" do
     subject { indexes.on(:first_name) }

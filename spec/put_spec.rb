@@ -1,16 +1,12 @@
+require_relative "./spec_helper"
+
 require_relative "support/user"
 require_relative "support/migrations/create_users"
 
 RSpec.describe "ActiveStash::Search.cs_put" do
   describe "#cs_put" do
     before(:example) do
-      User.collection.create!
       User.delete_all
-    end
-
-    after(:example) do
-      User.delete_all
-      User.collection.drop!
     end
 
     let(:user) do

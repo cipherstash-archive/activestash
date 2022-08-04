@@ -72,7 +72,7 @@ module ActiveStash
 
       def inspect
         index_name = index ? index.name : "no-index"
-        "<#{index_name} #{op} '#{value}'>"
+        "<#{index_name} #{op} '#{values}'>"
       end
 
       def ==(value)

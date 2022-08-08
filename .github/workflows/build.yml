@@ -20,8 +20,8 @@ jobs:
       CS_KMS_KEY_ARN: ${{ secrets.CS_KMS_KEY_ARN }}
       CS_NAMING_KEY:  ${{ secrets.CS_NAMING_KEY }}
       RAILS_VERSION: ${{ matrix.rails-version }}
-      ACTIVE_STASH_TEST_COLLECTION_PREFIX: run_${{ github.run_number }}.${{ github.run_attempt }}_job_${{ strategy.job-index }}
-      PGDATABASE: activestash_test_run_${{ github.run_number }}.${{ github.run_attempt }}_job_${{ strategy.job-index }}
+      ACTIVE_STASH_TEST_COLLECTION_PREFIX: run_${{ github.run_number }}.${{ github.run_attempt }}_job_${{ github.job }}_index_${{ strategy.job-index }}
+      PGDATABASE: activestash_test_run_${{ github.run_number }}.${{ github.run_attempt }}_job_${{ github.job }}_index_${{ strategy.job-index }}
     steps:
       - uses: actions/checkout@v2
       - uses: ruby/setup-ruby@v1
@@ -31,6 +31,45 @@ jobs:
       - uses: ankane/setup-postgres@v1
         with:
           database: ${{ env.PGDATABASE }}
+      # Ensures that the database is in a clean state before any test runs.
+      - name: "Show unique job ID"
+        run: echo ${{ env.ACTIVE_STASH_TEST_COLLECTION_PREFIX }}
+      - name: "Clear out database"
+        run: psql -d ${{ env.PGDATABASE }} -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
+      - name: "Install default uri gem version"
+        run: gem install --default -v0.11.0 uri
+      - name: Run the tests
+        run: bundle exec rake spec
+  run-specs-against-ruby-client-main:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    env:
+      BUNDLE_GEMFILE: gemfiles/ruby_client_main.gemfile
+      RSPEC_FULL_BACKTRACE: yes
+      CS_IDP_CLIENT_SECRET: ${{ secrets.CS_IDP_CLIENT_SECRET }}
+      CS_WORKSPACE: ${{ secrets.CS_WORKSPACE }}
+      CS_KMS_KEY_ARN: ${{ secrets.CS_KMS_KEY_ARN }}
+      CS_NAMING_KEY:  ${{ secrets.CS_NAMING_KEY }}
+      RAILS_VERSION: 6
+      ACTIVE_STASH_TEST_COLLECTION_PREFIX: run_${{ github.run_number }}.${{ github.run_attempt }}_job_${{ github.job }}_index_${{ strategy.job-index }}
+      PGDATABASE: activestash_test_run_${{ github.run_number }}.${{ github.run_attempt }}_job_${{ github.job }}_index_${{ strategy.job-index }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7
+          bundler-cache: false # don't use bundler-cache because we need to run bundle install manually in a later step
+      - uses: ankane/setup-postgres@v1
+        with:
+          database: ${{ env.PGDATABASE }}
+      # Installs GVB so that bundler can resolve the version of cipherstash-client when specified as a Git dependency
+      - name: "Install GVB"
+        run: gem install git-version-bump
+      # Run bundle install now that git-version-bump is available. Normally this is handled by ruby/setup-ruby@v1
+      # with bundler-cache=true
+      - name: "Install dependencies"
+        run: bundle install
       # Ensures that the database is in a clean state before any test runs.
       - name: "Show unique job ID"
         run: echo ${{ env.ACTIVE_STASH_TEST_COLLECTION_PREFIX }}

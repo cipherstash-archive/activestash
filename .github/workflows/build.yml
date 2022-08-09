@@ -11,7 +11,8 @@ jobs:
       fail-fast: false
       matrix:
         rails-version: [6, 7]
-        ruby-version: [2.7, 3.0, 3.1]
+        # Due to https://github.com/actions/runner/issues/849, we have to use quotes for '3.0'
+        ruby-version: ['2.7', '3.0', '3.1']
     env:
       BUNDLE_GEMFILE: gemfiles/rails${{ matrix.rails-version }}.gemfile
       RSPEC_FULL_BACKTRACE: yes
@@ -21,7 +22,7 @@ jobs:
       CS_NAMING_KEY:  ${{ secrets.CS_NAMING_KEY }}
       RAILS_VERSION: ${{ matrix.rails-version }}
       ACTIVE_STASH_TEST_COLLECTION_PREFIX: run_${{ github.run_number }}.${{ github.run_attempt }}_job_${{ github.job }}_index_${{ strategy.job-index }}
-      PGDATABASE: activestash_test_run_${{ github.run_number }}.${{ github.run_attempt }}_job_${{ github.job }}_index_${{ strategy.job-index }}
+      PGDATABASE: test
     steps:
       - uses: actions/checkout@v2
       - uses: ruby/setup-ruby@v1
@@ -31,11 +32,8 @@ jobs:
       - uses: ankane/setup-postgres@v1
         with:
           database: ${{ env.PGDATABASE }}
-      # Ensures that the database is in a clean state before any test runs.
       - name: "Show unique job ID"
         run: echo ${{ env.ACTIVE_STASH_TEST_COLLECTION_PREFIX }}
-      - name: "Clear out database"
-        run: psql -d ${{ env.PGDATABASE }} -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
       - name: "Install default uri gem version"
         run: gem install --default -v0.11.0 uri
       - name: Run the tests
@@ -53,7 +51,7 @@ jobs:
       CS_NAMING_KEY:  ${{ secrets.CS_NAMING_KEY }}
       RAILS_VERSION: 6
       ACTIVE_STASH_TEST_COLLECTION_PREFIX: run_${{ github.run_number }}.${{ github.run_attempt }}_job_${{ github.job }}_index_${{ strategy.job-index }}
-      PGDATABASE: activestash_test_run_${{ github.run_number }}.${{ github.run_attempt }}_job_${{ github.job }}_index_${{ strategy.job-index }}
+      PGDATABASE: test
     steps:
       - uses: actions/checkout@v2
       - uses: ruby/setup-ruby@v1
@@ -70,11 +68,8 @@ jobs:
       # with bundler-cache=true
       - name: "Install dependencies"
         run: bundle install
-      # Ensures that the database is in a clean state before any test runs.
       - name: "Show unique job ID"
         run: echo ${{ env.ACTIVE_STASH_TEST_COLLECTION_PREFIX }}
-      - name: "Clear out database"
-        run: psql -d ${{ env.PGDATABASE }} -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'
       - name: "Install default uri gem version"
         run: gem install --default -v0.11.0 uri
       - name: Run the tests

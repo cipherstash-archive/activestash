@@ -28,6 +28,12 @@ module ActiveStash
 
             when :dynamic_match
               dynamic_match!(indexes, index)
+            
+            when :range_unique
+              range_unique_index!(indexes, index)
+            
+            when :exact_unique
+              exact_unique_index!(indexes, index)
           end
         end
       end
@@ -82,10 +88,30 @@ module ActiveStash
       schema
     end
 
+    def range_unique_index!(schema, index)
+      schema[index.name] = {
+        "kind" => "range",
+        "field" => index.field,
+        "unique" => true
+      }
+
+      schema
+    end
+
     def exact_index!(schema, index)
       schema[index.name] = {
         "kind" => "exact",
-        "field" => index.field
+        "field" => index.field,
+      }
+
+      schema
+    end
+
+    def exact_unique_index!(schema, index)
+      schema[index.name] = {
+        "kind" => "exact",
+        "field" => index.field,
+        "unique" => true
       }
 
       schema

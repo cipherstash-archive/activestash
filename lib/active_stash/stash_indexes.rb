@@ -57,6 +57,18 @@ module ActiveStash
       end
     end
 
+    def self.range_unique(field)
+      new(field, "#{field}_range_unique").tap do |index|
+        index.type = :range_unique
+      end
+    end
+
+    def self.exact_unique(field)
+      new(field, "#{field}_unique").tap do |index|
+        index.type = :exact_unique
+      end
+    end
+
     def valid_op?(op)
       @valid_ops.include?(op)
     end
@@ -117,6 +129,8 @@ module ActiveStash
                 []
             end
 
+          targets = validate_unique_targets(targets, options, field)
+
           @indexes.concat(new_indexes(field, targets))
         end
       end
@@ -141,7 +155,6 @@ module ActiveStash
       fields = @model.attribute_types.inject({}) do |attrs, (k,v)|
         attrs.tap { |a| a[k] = v.type }
       end
-
       handle_encrypted_types(fields)
     end
 
@@ -162,6 +175,36 @@ module ActiveStash
         fields.tap do |f|
           f.delete("id")
           f.delete("stash_id")
+        end
+      end
+
+      def unique_constraint_on_match_index?(options, targets)
+        (options.key?(:unique) && targets.member?(:match)) && (!targets.member?(:exact) && !targets.member?(:range))
+      end
+
+      # Returns original targets as is if a unique key has not been specified on the field.
+      #
+      # It will raise a config error if a unique key has been provided and only a match index has been set on the field.
+      #
+      # Otherwise will map through the targets and update only the exact and range indexes as 
+      # unique indexes and return other targets as is.
+      def validate_unique_targets(targets, options, field)
+        unique_constraint_on_match_index = 
+        if !options.key?(:unique)
+          targets
+        elsif unique_constraint_on_match_index?(options, targets)
+          raise ConfigError, "Cannot specify field '#{field}' with a unique constraint on match"
+        else
+          targets.map do |t|
+            case t
+            when :exact
+              options[:unique] ? :exact_unique : :exact
+            when :range
+              options[:unique] ? :range_unique : :range
+            else
+              t
+            end
+          end
         end
       end
 
@@ -190,6 +233,8 @@ module ActiveStash
             when :exact; Index.exact(field)
             when :range; Index.range(field)
             when :match; Index.match(field)
+            when :exact_unique; Index.exact_unique(field)
+            when :range_unique; Index.range_unique(field)
           end
         end
       end

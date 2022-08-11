@@ -250,15 +250,11 @@ docs](https://docs.cipherstash.com/reference/index-types/index.html).
 
 ## Unique indexes
 
-ActiveStash supports adding server side unique constraints on `:range` and `:exact` indexes.
+ActiveStash supports adding server side unique constraints on fields.
 
-Unique constraints are not supported on `:match` indexes.
-
-To specify a unique constraint on a field add `unique: true`.
+Unique fields can be specified by adding `unique: true`.
 
 In the below example a unique constraint is added to the email field.
-
-This will result in a `:match` index and a unique constraint on the `:range` and `:exact` indexes.
 
 ```ruby
 class User < ActiveRecord::Base
@@ -273,16 +269,7 @@ class User < ActiveRecord::Base
 end
 ```
 
-Used in combination with `except` and `only` you can specify a unique constraint on a
-single index.
-
-In the below example, an exact index on email is created with a unique constraint
-
-```ruby
-stash_index :email, only: :exact, unique: true
-```
-
-ActiveStash does not support unique constraints on `:match` indexes.
+ActiveStash does not support adding unique constraints on `:match` indexes.
 
 The below example will result in a `ConfigError` being raised.
 

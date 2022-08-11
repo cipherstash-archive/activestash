@@ -13,8 +13,8 @@ end
 
 RSpec::Matchers.define :have_an_exact_unique_index do |name|
   match do |actual|
-    target = actual.find { |i| i.type == :exact_unique }
-    !target.nil? && target.name == name
+    target = actual.find { |i| i.type == :exact}
+    !target.nil? && target.name == name && target.unique == true
   end
 end
 
@@ -27,8 +27,8 @@ end
 
 RSpec::Matchers.define :have_a_range_unique_index do |name|
   match do |actual|
-    target = actual.find { |i| i.type == :range_unique }
-    !target.nil? && target.name == name
+    target = actual.find { |i| i.type == :range }
+    !target.nil? && target.name == name  && target.unique == true
   end
 end
 
@@ -57,7 +57,7 @@ RSpec.describe ActiveStash::StashIndexes do
       expect(subject.length).to eq(1)
     end
 
-    it { should have_an_exact_unique_index("first_name_unique") }
+    it { should have_an_exact_unique_index("first_name") }
   end
 
   describe "email with a match and a unique constraint on range and exact" do
@@ -67,8 +67,8 @@ RSpec.describe ActiveStash::StashIndexes do
       expect(subject.length).to eq(3)
     end
 
-    it { should have_an_exact_unique_index("email_unique") }
-    it { should have_a_range_unique_index("email_range_unique") }
+    it { should have_an_exact_unique_index("email") }
+    it { should have_a_range_unique_index("email_range") }
     it { should have_a_match_index("email_match") }
   end
 

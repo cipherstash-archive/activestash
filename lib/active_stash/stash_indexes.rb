@@ -1,6 +1,6 @@
 module ActiveStash
   class Index
-    attr_accessor :type, :valid_ops
+    attr_accessor :type, :valid_ops, :unique
     attr_reader :field
     attr_reader :name
 
@@ -29,6 +29,14 @@ module ActiveStash
       end
     end
 
+    def self.exact_unique(field)
+      new(field).tap do |index|
+        index.type = :exact
+        index.valid_ops = [:eq]
+        index.unique = true
+      end
+    end
+
     def self.match(field)
       new(field, "#{field}_match").tap do |index|
         index.type = :match
@@ -50,22 +58,18 @@ module ActiveStash
       end
     end
 
+    def self.range_unique(field)
+      new(field, "#{field}_range").tap do |index|
+        index.type = :range
+        index.valid_ops = RANGE_OPS
+        index.unique = true
+      end
+    end
+
     def self.dynamic_match(field)
       new(field, "#{field}_dynamic_match").tap do |index|
         index.type = :dynamic_match
         index.valid_ops = [:match]
-      end
-    end
-
-    def self.range_unique(field)
-      new(field, "#{field}_range_unique").tap do |index|
-        index.type = :range_unique
-      end
-    end
-
-    def self.exact_unique(field)
-      new(field, "#{field}_unique").tap do |index|
-        index.type = :exact_unique
       end
     end
 

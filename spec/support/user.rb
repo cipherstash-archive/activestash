@@ -7,7 +7,7 @@ class User < ActiveRecord::Base
   # Used for testing
   attr_accessor :skip_validations
 
-  validates :email, uniqueness: true, if: Proc.new { |user| user.perform_validations? }
+  validates_uniqueness_of :email, if: Proc.new { |user| user.perform_validations? }
 
   stash_index :first_name, :dob, :created_at, :email
   stash_index :gender, only: :exact

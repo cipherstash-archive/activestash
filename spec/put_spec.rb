@@ -78,7 +78,7 @@ RSpec.describe "ActiveStash::Search.cs_put" do
           title: "Ms",
           email: "smeyer@veep.net"
         )
-      end.to raise_error(CipherStash::Client::Error::RecordPutFailure)
+      end.to raise_error(CipherStash::Client::Error::RecordPutError)
     end
 
     it "an error will be raised if the email is in a different case" do
@@ -102,7 +102,7 @@ RSpec.describe "ActiveStash::Search.cs_put" do
           title: "Ms",
           email: "SMEyer@Veep.net"
         )
-      end.to raise_error(CipherStash::Client::Error::RecordPutFailure)
+      end.to raise_error(CipherStash::Client::Error::RecordPutError)
     end
 
     it "does not raise an error if the email is not a duplicate" do

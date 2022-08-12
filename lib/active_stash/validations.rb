@@ -1,7 +1,16 @@
 module ActiveStash
   module Validations
-    class UniquenessValidator < ActiveModel::EachValidator
+    def self.included(base)
+      base.extend ClassMethods
+    end
 
+    module ClassMethods
+      def validates_uniqueness_of(*attr_names)
+        validates_with ActiveStash::Validations::UniquenessValidator, _merge_attributes(attr_names)
+      end
+    end
+
+    class UniquenessValidator < ActiveModel::EachValidator
       # Uniqueness validator for encryped fields.
       #
       # It relies on an exact index being present for the

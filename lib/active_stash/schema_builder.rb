@@ -74,19 +74,39 @@ module ActiveStash
     end
 
     def range_index!(schema, index)
-      schema[index.name] = {
+      mapping = {
         "kind" => "range",
         "field" => index.field
       }
+
+      if index.unique
+        mapping = {
+          "kind" => "range",
+          "field" => index.field,
+          "unique" => index.unique
+        }
+      end
+
+      schema[index.name] = mapping
 
       schema
     end
 
     def exact_index!(schema, index)
-      schema[index.name] = {
+      mapping = {
         "kind" => "exact",
         "field" => index.field
       }
+
+      if index.unique
+        mapping = {
+          "kind" => "range",
+          "field" => index.field,
+          "unique" => index.unique
+        }
+      end
+
+      schema[index.name] = mapping
 
       schema
     end

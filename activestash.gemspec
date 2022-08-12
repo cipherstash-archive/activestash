@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
   spec.metadata["documentation_uri"] = "https://rubydoc.info/gems/active_stash"
   spec.metadata["mailing_list_uri"] = "https://discuss.cipherstash.com"
 
-  spec.add_runtime_dependency "cipherstash-client", "~> 0.12"
+  spec.add_runtime_dependency "cipherstash-client", "~> 0.15.1"
   spec.add_runtime_dependency "activerecord"
   spec.add_runtime_dependency "terminal-table", "~> 3.0"
   spec.add_runtime_dependency "launchy", "~> 2.5"

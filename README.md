@@ -131,6 +131,7 @@ To use, include ActiveStash::Search in a model and define which fields you want 
 class User < ActiveRecord::Base
   include ActiveStash::Search
 
+  # Searchable fields
   stash_index :name, :email, :dob
 
   # fields encrypted with EncryptedRecord
@@ -246,6 +247,36 @@ User.query("ruby")
 
 For more information on index types and their options, see the [CipherStash
 docs](https://docs.cipherstash.com/reference/index-types/index.html).
+
+## Unique indexes
+
+ActiveStash supports adding server side unique constraints on fields.
+
+Unique fields can be specified by adding `unique: true`.
+
+In the below example a unique constraint is added to the email field.
+
+```ruby
+class User < ActiveRecord::Base
+  include ActiveStash::Search
+
+  stash_index :name, :dob
+  stash_index :email, unique: true
+
+  encrypts :name
+  encrypts :email
+  encrypts :dob
+end
+```
+
+ActiveStash does not support adding unique constraints on `:match` indexes.
+
+The below example will result in a `ConfigError` being raised.
+
+```ruby
+stash_index :email, only: :match, unique: true
+```
+
 
 ## Create a CipherStash Collection
 

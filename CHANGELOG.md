@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0]
+
+### Added
+
+* Add the ability to specify a unique constraint on range and exact indexes.
+* Add CI job for running specs against main branch of Ruby client
+
 ## [0.4.5]
 
 ### Added

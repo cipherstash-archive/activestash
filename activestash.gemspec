@@ -1,8 +1,13 @@
-require_relative 'lib/active_stash/version'
+begin
+  require "git-version-bump"
+rescue LoadError
+  nil
+end
 
 Gem::Specification.new do |spec|
   spec.name          = "active_stash"
-  spec.version       = ActiveStash::VERSION
+  spec.version       = GVB.version rescue "0.0.0.1.NOGVB"
+  spec.date          = GVB.date    rescue Time.now.strftime("%Y-%m-%d")
   spec.authors       = ["Dan Draper", "James Sadler"]
   spec.email         = ["dan@cipherstash.com", "james@cipherstash.com"]
 
@@ -25,6 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "activerecord"
   spec.add_runtime_dependency "terminal-table", "~> 3.0"
   spec.add_runtime_dependency "launchy", "~> 2.5"
+  spec.add_runtime_dependency "git-version-bump", "~> 0.17"
 
   if RUBY_VERSION < '3.1'
     # https://github.com/ruby/net-protocol/issues/10
@@ -36,6 +42,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'factory_bot', '~> 6.2', '>= 6.2.1'
   spec.add_development_dependency "rake", "~> 12.0"
   spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "github-release", "~> 0.2"
 
   spec.files = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*"]
   spec.bindir        = "exe"

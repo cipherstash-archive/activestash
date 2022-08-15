@@ -10,17 +10,24 @@ module ActiveStash
       end
     end
 
-    class UniquenessValidator < ActiveModel::EachValidator
-      # Uniqueness validator for encryped fields.
+    class UniquenessValidator < ActiveRecord::Validations::UniquenessValidator
+      # Uniqueness validator for encrypted fields.
       #
       # It relies on an exact index being present for the
       # attribute (created by default with `stash_index`)
       #
       def validate_each(record, attribute, value)
-        result = record.class.query(attribute => value).first
+        stash_indexes = record.class.stash_indexes
+        indexes_on_attribute = stash_indexes.on(attribute)
 
-        if (options[:case_sensitive] && result[attribute] == attribute) || result
-          record.errors.add(attribute, options[:message] || "already exists")
+        if indexes_on_attribute.length > 0
+          result = record.class.query(attribute => value).first
+
+          if (options[:case_sensitive] && result[attribute] == attribute) || result
+            record.errors.add(attribute, options[:message] || "already exists")
+          end
+        else
+          super
         end
       end
     end

@@ -312,6 +312,31 @@ User.reindex
 Depending on how much data you have, reindexing may take a while but you only need to do it once.
 _ActiveStash will automatically index (and delete) data as it records are created, updated and deleted._
 
+## Uniqueness Validations
+
+Standard ActiveRecord uniqueness validations won't work when data is encrypted.
+While it *can* work in some cases when using deterministic encryption, we generally recommend against this approach
+(deterministic encryption is vulnerable to inference and chosen-plaintext attacks).
+
+Instead, you can include `ActiveStash::Validations` and your uniqueness validation will now work via a query
+to the CipherStash index on the validated field.
+If there is no index on the field then validations will fail.
+
+Note that uniqueness validations in ActiveStash are **always** _case sensitive_.
+
+Also, note that as of now the `ActiveStash::Validations` does not support the `:scope` or `:conditions` options.
+All [other options](https://api.rubyonrails.org/classes/ActiveRecord/Validations/ClassMethods.html#method-i-validates_uniqueness_of)
+are supported.
+
+```ruby
+class Person < ApplicationRecord
+  include ActiveStash::Search
+  include ActiveStash::Validations
+
+  validates :email, uniqueness: true
+end
+```
+
 ## Current limitations
 
 Presently, ActiveStash provides no means to update the schema of a CipherStash collection. Therefore if you need to make any changes to the Collection schema itself (by using the `stash_index` or `stash_match_all` helpers) you must drop your collection and recreate it.

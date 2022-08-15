@@ -30,6 +30,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "activerecord"
   spec.add_runtime_dependency "terminal-table", "~> 3.0"
   spec.add_runtime_dependency "launchy", "~> 2.5"
+  spec.add_runtime_dependency "git-version-bump", "~> 0.17"
 
   if RUBY_VERSION < '3.1'
     # https://github.com/ruby/net-protocol/issues/10
@@ -42,7 +43,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 12.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "github-release", "~> 0.2"
-  spec.add_development_dependency "git-version-bump", "~> 0.17"
 
   spec.files = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*"]
   spec.bindir        = "exe"

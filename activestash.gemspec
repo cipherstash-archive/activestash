@@ -1,8 +1,13 @@
-require_relative 'lib/active_stash/version'
+begin
+  require "git-version-bump"
+rescue LoadError
+  nil
+end
 
 Gem::Specification.new do |spec|
   spec.name          = "active_stash"
-  spec.version       = ActiveStash::VERSION
+  spec.version       = GVB.version rescue "0.0.0.1.NOGVB"
+  spec.date          = GVB.date    rescue Time.now.strftime("%Y-%m-%d")
   spec.authors       = ["Dan Draper", "James Sadler"]
   spec.email         = ["dan@cipherstash.com", "james@cipherstash.com"]
 

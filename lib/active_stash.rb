@@ -1,4 +1,3 @@
-require "active_stash/version"
 require "active_stash/error"
 require "active_stash/search"
 require "active_stash/validations"

@@ -21,6 +21,6 @@ namespace :gem do
   end
 end
 
-task :release do
+task :git_release do
   sh "git release"
 end

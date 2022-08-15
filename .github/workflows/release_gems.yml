@@ -1,0 +1,27 @@
+on:
+  workflow_dispatch:
+  push:
+    branch: [main]
+
+jobs:
+  source_gem:
+    name: Build+push source gem
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Workaround https://github.com/actions/checkout/issues/290
+        run: git fetch --force --tags
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+
+      - name: Build+push
+        run: |
+          rake gem gem:push
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}

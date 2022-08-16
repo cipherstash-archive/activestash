@@ -551,11 +551,11 @@ Then, run `rake spec` to run the tests. You can also run `bin/console` for an in
 
 To install this gem onto your local machine:
 
-1. Build the gem by running `gem build activestash.gemspec`.
+1. Build the gem by running `rake gem`.
 
-2. This will create a gem file (`active_stash-x.x.x.gem`) in the root of this directory
+2. This will create a gem file (`active_stash-x.x.x.gem`) in the `./pkg` folder.
 
-2. Install the gem by running `gem install` with the gem file name, e.g `gem install active_stash-x.x.x.gem`
+3. Install the gem by running `gem install` with the gem file name, e.g `gem install ./pkg/active_stash-x.x.x.gem`
 
 ## Making a Release
 

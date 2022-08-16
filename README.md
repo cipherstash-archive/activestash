@@ -567,7 +567,7 @@ If you have push access to the GitHub repository, you can make a release by doin
    Save/exit your editor.
    This will automatically push the newly-created annotated tag, which will in turn kick off a release build of the gem and push it to [RubyGems.org](https://rubygems.org/gems/active_stash).
 
-3. Run `rake git_release` to automagically create a new [GitHub release](https://github.com/cipherstash/activestash/releases) for the project.
+3. Run `rake release` to automagically create a new [GitHub release](https://github.com/cipherstash/activestash/releases) for the project.
 
 ... and that's it!
 

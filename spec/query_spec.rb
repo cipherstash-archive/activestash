@@ -12,15 +12,28 @@ RSpec.describe "ActiveStash::Search.query" do
     ago_10 = 10.days.ago
 
     User.create!([
-      { first_name: "James", last_name: "Hetfield", gender: "M", dob: "Aug 3, 1963", created_at: ago_10, title: "Mr", email: "james@metalica.net" },
-      { first_name: "Lars", last_name: "Ulrich", gender: "M", dob: "Dec 26, 1963", created_at: ago_10, title: "Mr", email: "lars@metalica.net" },
-      { first_name: "Kirk", last_name: "Hammett", gender: "M", dob: "Nov 18, 1962", created_at: ago_10, title: "Mr", email: "kirk@metalica.net" },
-      { first_name: "Robert", last_name: "Trujillo", gender: "M", dob: "Oct 23, 1964", created_at: ago_10, title: "Mr", email: "robert@metalica.net" },
+      { first_name: "James", last_name: "Hetfield", gender: "M", dob: "Aug 3, 1963", created_at: ago_10, title: "Mr", email: "james@metallica.net" },
+      { first_name: "Lars", last_name: "Ulrich", gender: "M", dob: "Dec 26, 1963", created_at: ago_10, title: "Mr", email: "lars@metallica.net" },
+      { first_name: "Kirk", last_name: "Hammett", gender: "M", dob: "Nov 18, 1962", created_at: ago_10, title: "Mr", email: "kirk@metallica.net" },
+      { first_name: "Robert", last_name: "Trujillo", gender: "M", dob: "Oct 23, 1964", created_at: ago_10, title: "Mr", email: "robert@metallica.net" },
+      { first_name: "Cliff", last_name: "Burnstein", gender: "M", created_at: ago_10, title: "Mr", email: "cliff@qprime.example" },
       { first_name: "Melanie", last_name: "Brown", gender: "F", dob: "May 29, 1975", created_at: ago_5, title: "Ms", email: "scary@spicegirls.music" },
       { first_name: "Emma", last_name: "Bunton", gender: "F", dob: "Jan 21, 1976", created_at: ago_5, title: "Ms", email: "baby@spicegirls.music" },
       { first_name: "Melanie", last_name: "Chisholm", gender: "F", dob: "Jan 12, 1974", created_at: ago_2, title: "Ms", email: "sporty@spicegirls.music" },
       { first_name: "Geri", last_name: "Halliwell", gender: "F", dob: "Aug 6, 1972", created_at: ago_2, title: "Ms", email: "ginger@spicegirls.music" },
       { first_name: "Victoria", last_name: "Beckham", gender: "F", dob: "April 17, 1974", created_at: ago_2, title: "Ms", email: "posh@spicegirls.music" }
+    ])
+
+    Employee.create!([
+      { user: User.find_by(email: "james@metallica.net") },
+      { user: User.find_by(email: "lars@metallica.net") },
+      { user: User.find_by(email: "kirk@metallica.net") },
+      { user: User.find_by(email: "robert@metallica.net") },
+      { id: 42, user: User.find_by(email: "cliff@qprime.example") },
+    ])
+
+    Manager.create!([
+      { employee: User.find(42) },
     ])
   end
 
@@ -47,6 +60,20 @@ RSpec.describe "ActiveStash::Search.query" do
     it "by exact name, gender limit=1 (conjunctive, 1 result)" do
       result = User.query(first_name: "Melanie", gender: "F").order(:dob).first
       expect(result.last_name).to eq("Chisholm")
+    end
+  end
+
+  describe "#query simple constraint on a single-level denormalised field" do
+    context "by exact string comparison" do
+      subject { Employee.query(user: { first_name: "James" }) }
+
+      it "finds a single record" do
+        expect(subject.length).to eq(1)
+      end
+
+      it "finds the *right* employee" do
+        expect(subject.first.user.email).to eq("james@metallica.net")
+      end
     end
   end
 

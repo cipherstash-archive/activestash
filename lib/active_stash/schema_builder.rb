@@ -25,19 +25,18 @@ module ActiveStash
 
             when :range
               range_index!(indexes, index)
-
-            when :dynamic_match
-              dynamic_match!(indexes, index)
           end
         end
       end
-    
-      {"indexes" => indexes, "type" => stash_type}
+
+      {"indexes" => indexes, "type" => stash_schema_types}
     end
 
     private
-    def stash_type
-      @model.stash_indexes.fields.inject({}) do |attrs, (field,type)|
+    def stash_schema_types
+      p :STASH_SCHEMA_TYPES, @model, @model.stash_fields
+      @model.stash_fields.each_with_object({}) do |field, attrs|
+        type = @model.stash_field_type(field)
         case type
           when :text, :string
             attrs[field] = "string"
@@ -53,9 +52,10 @@ module ActiveStash
 
           when :boolean
             attrs[field] = "boolean"
-          end
 
-        attrs
+          else
+            ActiveStash::Logger.info("Not including field #{field.inspect} in schema because it has unsupported type #{type.inspect}")
+          end
       end
     end
 
@@ -89,17 +89,6 @@ module ActiveStash
       }
 
       schema
-    end
-
-    def dynamic_match!(schema, index)
-      schema[index.name] = {
-        "kind" => "dynamic-match",
-        "tokenFilters" => [
-          { "kind" => "downcase" },
-          { "kind" => "ngram", "tokenLength" => 3 }
-        ],
-        "tokenizer" => { "kind" => "standard" }
-      }
     end
   end
 end

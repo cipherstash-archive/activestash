@@ -120,7 +120,7 @@ module ActiveStash
       private
       def set(*values)
         # Find the appropriate index to use
-        @index = @available_indexes.find do |index|
+        @index = @available_indexes.sort_by(&:precedence).find do |index|
           index.valid_op?(@op)
         end
 

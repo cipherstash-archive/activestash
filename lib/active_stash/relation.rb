@@ -90,7 +90,7 @@ module ActiveStash
       args.flat_map do |field_or_hash|
         if Hash === field_or_hash
           field_or_hash.map do |(field, direction)|
-            range_index = @klass.stash_indexes.on(field.to_s).find do |index|
+            range_index = @klass.stash_indexes.on(field).find do |index|
               index.type == :range
             end
 

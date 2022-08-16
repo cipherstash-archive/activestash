@@ -16,7 +16,7 @@ module ActiveStash
 
     def create!
       client.create_collection(collection_name, schema)
-      logger.info("Successfully created '#{collection_name}'")
+      logger.info("Successfully created '#{collection_name}', ref #{collection.ref.unpack("H*").first}")
       true
     rescue CipherStash::Client::Error::CollectionCreateFailure
       raise CollectionExistsError, name: collection_name

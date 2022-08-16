@@ -95,23 +95,28 @@ module ActiveStash # :nodoc:
 
     # Index this record into CipherStash
     def cs_put
-      ActiveStash::Logger.info("Indexing #{self.stash_id}")
       ensure_stash_id
+
+      ActiveStash::Logger.info("Indexing #{self.stash_id}")
+      ActiveStash::Logger.debug("Record content: #{self.stash_attrs.inspect}")
 
       # TODO: If this fails, throw :abort
       # it should unset stash_id if this record did not already exist
       # Note: It turns out that Lockbox doesn't support serializable_hash
-      self.class.collection.upsert(
+     self.class.collection.upsert(
         self.stash_id,
-        self.stash_attrs
+        self.stash_record
       )
     end
 
-    def stash_attrs
-      indexed_fields = self.class.stash_config[:indexes].keys
+    def stash_record
+      {}.tap do |record|
+        self.class.stash_fields.each do |field|
+
+
 
       self.attributes.select do |k, v|
-        indexed_fields.include?(k)
+        indexed_fields.include?(k.to_sym)
       end
     end
 
@@ -138,24 +143,129 @@ module ActiveStash # :nodoc:
         true
       end
 
-      def stash_index(*args)
-        opts = args.extract_options!
+      # Declare one or more fields to be indexed in CipherStash.
+      #
+      # Before an encrypted field in a model can be queried, it must be declared as a queryable field so that ActiveStash knows to index it.
+      # This is done by calling `stash_index` with the names of one or more fields in the model, or in associated models.
+      #
+      #
+      # # Declaring a field to be fully indexed
+      #
+      # The simplest way to say that a field on the current model is to be indexed is to just pass the field name, as a symbol, to `stash_index`:
+      #
+      # ```
+      # class Foo < ApplicationRecord
+      #   # Makes the `stash_index` method available to the model
+      #   include ActiveStash::Search
+      #
+      #   # Make the `name` field queryable, even though it's encrypted
+      #   stash_index :name
+      # ```
+      #
+      # If you have more than one field that needs to be queryable, you can use several `stash_index` calls, or pass them into one call:
+      #
+      # ```
+      #   # ...
+      #   stash_index :name, :date_of_birth, :something_else, :etc
+      #   # ...
+      # ```
+      #
+      #
+      # # Restricting index types
+      #
+      # CipherStash provides [several different kinds of indexes](https://docs.cipherstash.com/reference/index-types/index.html), to support different kinds of queries on encrypted data.
+      # By default, ActiveStash will create indexes of all relevant kinds for the type of data that is being indexed.
+      #
+      # However, indexes are not zero-cost: the more indexes there are, the more data needs to be written to the collection, which means writes will be slightly slower.
+      # If you don't need to perform certain types of queries on a field, you can restrict which indexes are created for a field, using the `only:` and `except:` options.
+      # Both of these options take a symbol or array of symbols representing the various index types:
+      #
+      # * `:exact` (supports "is this value identical to that value" equality operations)
+      # * `:range` (supports "is this value less than/greater than that value" inequality operations, and also needed for ordering)
+      # * `:match` (supports "is this string a subset of that other string" text match operations)
+      #
+      # So, if you have a string field where you only want to support `field == "something"` queries, such as an enum, then you can improve performance like this:
+      #
+      # ```
+      #   # ...
+      #   stash_index :field, only: :exact
+      #   # ...
+      # ```
+      #
+      # On the other hand, if you want to do equality queries and sort by the values in a string field, but don't want to support full-text search, this will do the job:
+      #
+      # ```
+      #   # ...
+      #   stash_index :field, except: :match
+      #   # ...
+      # ```
+      #
+      #
+      # # Querying across multiple models
+      #
+      # Unlike relational databases (like MySQL, Postgres, SQL Server, etc), CipherStash does not support "joining" multiple collections in a single query.
+      # Instead, ActiveStash provides the ability to include fields from multiple models in the records in a single collection, so that queries can use all of those fields.
+      # This happens automatically, and the data in the collection is automatically updated whenever any of the data in the relevant models are modified.
+      #
+      # To declare that a field in an associated model should be included in the records of this model, pass the relation and the field name(s) as a hash to `stash_index`,
+      # ***after*** the association has been defined:
+      #
+      # ```
+      #   class Book < ApplicationRecord
+      #     include ActiveStash::Search
+      #
+      #     # Declare the association -- this MUST be done before referring to the association with `stash_index`
+      #     belongs_to :author
+      #
+      #     # Make some of the fields in User queryable
+      #     stash_index author: %i{first_name last_name dob}
+      #   end
+      # ```
+      #
+      # Note that ActiveStash is quite capable of indexing fields in other models that aren't themselves encrypted.
+      # Including data from other models is a search convenience.
+      # You should include all fields from other related models that you need to use in "joined" queries, regardless of whether those fields are encrypted.
+      #
+      # "Nesting" of associations is also supported (ie `stash_index foo: { bar: :baz }`), to support transitive associations.
+      # These work identically to single-level associations.
+      #
+      def stash_index(*fields, only: nil, except: nil, **assocs)
+        p :STASH_INDEX_CALL, self, fields, only, except, assocs
+        opts = {only: only, except: except}.compact
 
-        @stash_config ||= {}
-        @stash_config[:indexes] ||= {}
+        fields.each do |field|
+          unless field.is_a?(Symbol)
+            raise ArgumentError, "Field names must be symbols (got #{field.inspect})"
+          end
 
-        Array(args).each do |field|
-          if @stash_config[:indexes].has_key?(field)
+          if stash_config[:fields].has_key?(field)
             ActiveStash::Logger.warn("index for '#{field}' was defined more than once on '#{self}'")
           end
 
-          @stash_config[:indexes][field.to_s] = opts
+          stash_config[:fields][field] = opts
+        end
+
+        assocs.each do |assoc, fields|
+          unless assoc.is_a?(Symbol)
+            raise ArgumentError, "Association names must be symbols (got #{assoc.inspect})"
+          end
+
+          expand_assoc_fields(fields).each do |field|
+            k = { assoc => field }
+
+            if stash_config[:fields].has_key?(k)
+              ActiveStash::Logger.warn("index for '#{k.inspect}' was defined more than once on '#{self}'")
+            end
+
+            p :ASSOC_ASSIGN, field, opts, k
+
+            stash_config[:fields][k] = opts
+          end
         end
       end
 
       def stash_match_all(*args)
-        @stash_config ||= {}
-        @stash_config[:multi] = Array(args)
+        stash_config[:multi] = args
       end
 
       # Perform a query using the CipherStash collection indexes
@@ -196,11 +306,58 @@ module ActiveStash # :nodoc:
       end
 
       def stash_indexes # :nodoc:
-        @stash_indexes ||= StashIndexes.new(self, @stash_config).build!
+        @stash_indexes ||= StashIndexes.new(self, stash_config)
+      end
+
+      def stash_fields
+        stash_config[:fields].keys
       end
 
       def stash_config
-        @stash_config || {indexes: [], multi: []}
+        @stash_config ||= {fields: {}, multi: []}
+      end
+
+      def stash_field_type(field)
+        case field
+        when Symbol
+          self.attribute_types[field.to_s].type
+        when Hash
+          if field.length > 1
+            raise ArgumentError, "Invalid hash passed to stash_field_type; must be a single-value hash (got #{field.inspect})"
+          end
+          assoc_name = field.keys.first
+          unless assoc_name.is_a?(Symbol)
+            raise ArgumentError, "Invalid hash key passed to stash_field_type; must be a symbol (got #{assoc_name.inspect})"
+          end
+          assoc = self.reflections[assoc_name.to_s]
+          if assoc.nil?
+            raise ArgumentError, "No association on #{self} named '#{assoc_name}'"
+          end
+          assoc.klass.stash_field_type(field.values.first)
+        else
+          raise ArgumentError, "Must pass symbol or hash to stash_field_type (got #{field.inspect})"
+        end
+      end
+
+      private
+
+      def expand_assoc_fields(fields)
+        case fields
+        when Symbol
+          [fields]
+        when Array
+          fields
+        when Hash
+          [].tap do |expansion|
+            fields.each do |k, v|
+              expand_assoc_fields(v).each do |f|
+                expansion << { k => f }
+              end
+            end
+          end
+        else
+          raise ArgumentError, "Value of association index must be symbol or array of symbols (got #{fields.inspect})"
+        end
       end
     end
   end

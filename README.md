@@ -103,7 +103,7 @@ $ rails c
  => []  # no records, because the database isn't searchable
  >> User.query(email: "grace@example.com")
  => [
-   #<User:0x00000001138a42b0                                      
+   #<User:0x00000001138a42b0
   id: 7,
   name: "Grace Hopper",
   email: "grace@example.com",
@@ -299,8 +299,7 @@ Support for zero-downtime Collection schema changes and reindexing is being acti
 
 These are the rules for when you _must_ re-index your collection:
 
-1. You have imported, deleted or updated data in the table that backs your ActiveStash model via some external mechanism, OR
-2. You have added or removed a string/text column from the table that backs your ActiveStash model _and_ you are using a `dynamic_match` index in your model
+1. You have imported, deleted or updated data in the table that backs your ActiveStash model via some external mechanism.
 
 ### When to Drop, Recreate and Reindex Your Collection
 

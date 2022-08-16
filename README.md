@@ -549,7 +549,13 @@ The test suite depends on a running postgres instance being available on localho
 
 Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`.
+To install this gem onto your local machine:
+
+1. Build the gem by running `rake gem`.
+
+2. This will create a gem file (`active_stash-x.x.x.gem`) in the `./pkg` folder.
+
+3. Install the gem by running `gem install` with the gem file name, e.g `gem install ./pkg/active_stash-x.x.x.gem`
 
 ## Making a Release
 

@@ -571,6 +571,10 @@ If you have push access to the GitHub repository, you can make a release by doin
 
 ... and that's it!
 
+## Need help?
+
+Head over to our [support forum](https://discuss.cipherstash.com/), and we'll get back to you super quick! 
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/cipherstash/activestash. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/cipherstash/activestash/blob/master/CODE_OF_CONDUCT.md).

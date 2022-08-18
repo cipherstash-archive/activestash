@@ -5,11 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+
+## [0.6.2]
+
+### Fixed
+
+* Ensure GVB is loaded before looking it up.
+
+## [0.6.1]
+
+### Fixed
+
+* Remove bundler gem helpers to avoid conflicts with git release task.
+
+## [0.6.0]
 
 ### Added
 
-* Added encryption compatible uniqueness validations via ActiveStash::Validations
+* Added encryption compatible uniqueness validations via ActiveStash::Validations.
+* Use git version bump.
 
 ## [0.5.0]
 

@@ -4,8 +4,7 @@ module ActiveStash
   class Relation < ::ActiveRecord::Relation
     include ActiveStash::RelationHelp::Compatability
 
-    # TODO: Add count aggregate support
-    stash_unsupported(:where, :count, :delete_all, :destroy_all)
+    stash_unsupported(:where, :delete_all, :destroy_all)
     stash_wrap(:select, :all, :includes, :joins, :annotate)
 
     delegate :name, :inspect, to: :@scope
@@ -44,6 +43,14 @@ module ActiveStash
     def last(n = nil)
       if stash_query?
         n ? self.load.last(n) : self.load.last
+      else
+        super
+      end
+    end
+
+    def count
+      if stash_query?
+        self.load.count
       else
         super
       end

@@ -194,4 +194,46 @@ RSpec.describe "ActiveStash::Search.query" do
       expect(result).to match([match(%r{\A\h{8}(-\h{4}){3}-\h{12}\z})])
     end
   end
+
+  describe "#count" do
+    it "can be chained with simple queries" do
+      count = User.query(gender: "F").count
+
+      expect(count).to eq(5)
+    end
+
+    it "can be chained with queries with blocks" do
+      count = User.query { |q|
+        q.dob.between("1974-01-12".to_date, "1974-06-17".to_date)
+      }.count
+
+      expect(count).to eq(2)
+    end
+
+    it "can be chained with wrapped methods" do
+      count = User.query { |q|
+        q.dob.between("1974-01-12".to_date, "1974-06-17".to_date)
+      }.select(:first_name).count
+
+      expect(count).to eq(2)
+    end
+
+    it "can be chained when order is given" do
+      count = User.query(gender: "F").order(dob: :desc).count
+
+      expect(count).to eq(5)
+    end
+
+    it "can be chained with limit and offset" do
+      count = User.query(gender: "F").limit(3).offset(4).count
+
+      expect(count).to eq(1)
+    end
+
+    it "still works without an ActiveStash query" do
+      count = ActiveStash::Relation.new(User).count
+
+      expect(count).to eq(9)
+    end
+  end
 end

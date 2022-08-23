@@ -32,12 +32,25 @@ module ActiveStash
         end
       end
     
-      {"indexes" => indexes, "type" => stash_type}
+      {"indexes" => indexes, "type" => stash_type}.tap do |schema|
+        ActiveStash::Logger.debug(<<-MSG
+          Creating Schema
+          #{stash_type}
+          #{indexes}
+          MSG
+        )
+      end
     end
 
     private
+    # TODO: This method would be handy as a public method on the collection proxy
     def stash_type
-      @model.stash_indexes.fields.inject({}) do |attrs, (field,type)|
+      _fields = @model.stash_indexes.fields(@model)
+
+      # TODO: Add associated fields
+      @model.stash_config[:fields].inject({}) do |attrs, (field, _opts)|
+        type = _fields[field.to_s]
+
         case type
           when :text, :string
             attrs[field] = "string"
@@ -53,7 +66,11 @@ module ActiveStash
 
           when :boolean
             attrs[field] = "boolean"
-          end
+
+        else
+          # TODO: Give this a sensible error type
+          raise "Unknown mapping for type '#{type}'"
+        end
 
         attrs
       end

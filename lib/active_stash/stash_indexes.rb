@@ -110,35 +110,32 @@ module ActiveStash
     end
 
     def build!
-      _fields = fields()
       @indexes = []
+      fields, assocs = @stash_config.values_at(:fields, :assocs)
 
-      if Hash === @stash_config[:indexes]
-        @stash_config[:indexes].each do |field, options|
-          type = _fields[field.to_s]
+      (fields_with_types(fields) + assocs_with_types(assocs)).each do |(field, type, options)|
+        targets =
+          case type
+            when *Index::RANGE_TYPES
+              target_indexes(:range, options)
 
-          targets =
-            case type
-              when *Index::RANGE_TYPES
-                target_indexes(:range, options)
+            when :string, :text
+              target_indexes(:exact, :match, :range, options)
 
-              when :string, :text
-                target_indexes(:exact, :match, :range, options)
+            when :boolean, :uuid
+              target_indexes(:exact, options)
 
-              when :boolean, :uuid
-                target_indexes(:exact, options)
-
-              else
-                ActiveStash::Logger.warn("ignoring field '#{field}' which has type #{type} as index type cannot be implied")
-                []
-            end
+            else
+              ActiveStash::Logger.warn("ignoring field '#{field}' which has type #{type} as index type cannot be implied")
+              []
+          end
 
           targets = validate_unique_targets(targets, options, field)
 
           @indexes.concat(new_indexes(field, targets))
         end
-      end
 
+      _fields = fields(@model) # TODO: Memoize this earlier?
       # TODO: Test this case
       if @stash_config[:multi]
         # Check that all multi fields are texty
@@ -155,17 +152,37 @@ module ActiveStash
       self
     end
 
-    def fields
-      fields = @model.attribute_types.inject({}) do |attrs, (k,v)|
+    # TODO: Change this to default to @model
+    # if a symbol is passed then we reflect on it as an association
+    def fields(model)
+      fields = model.attribute_types.inject({}) do |attrs, (k,v)|
         attrs.tap { |a| a[k] = v.type }
       end
-      handle_encrypted_types(fields)
+
+      handle_encrypted_types(model, fields)
     end
 
     private
-      def handle_encrypted_types(fields)
-        if @model.respond_to?(:lockbox_attributes)
-          @model.lockbox_attributes.each do |(attr, settings)|
+      def assocs_with_types(array)
+        array.flat_map do |(association, field_names, opts)|
+          assoc_types= fields(@model.reflect_on_association(association).klass)
+
+          Array(field_names).map do |field|
+            ["__#{association}_#{field}", assoc_types[field.to_s], opts]
+          end
+        end
+      end
+
+      def fields_with_types(fields)
+        field_types = fields(@model)
+        fields.map do |(field, opts)|
+          [field, field_types[field.to_s], opts]
+        end
+      end
+
+      def handle_encrypted_types(model, fields)
+        if model.respond_to?(:lockbox_attributes)
+          model.lockbox_attributes.each do |(attr, settings)|
             if settings[:attribute] != settings[:encrypted_attribute]
               fields.delete(settings[:encrypted_attribute])
             end
@@ -193,7 +210,6 @@ module ActiveStash
       # Otherwise will map through the targets and update only the exact and range indexes as 
       # unique indexes and return other targets as is.
       def validate_unique_targets(targets, options, field)
-        unique_constraint_on_match_index = 
         if !options.key?(:unique)
           targets
         elsif unique_constraint_on_match_index?(options, targets)

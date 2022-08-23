@@ -138,24 +138,90 @@ module ActiveStash # :nodoc:
         true
       end
 
-      def stash_index(*args)
-        opts = args.extract_options!
+      def _stash_index(*fields, only: nil, except: nil, **assocs)
+        p :STASH_INDEX_CALL, self, fields, only, except, assocs
+        opts = {only: only, except: except}.compact
 
-        @stash_config ||= {}
-        @stash_config[:indexes] ||= {}
+        fields.each do |field|
+          unless field.is_a?(Symbol)
+            raise ArgumentError, "Field names must be symbols (got #{field.inspect})"
+          end
 
-        Array(args).each do |field|
-          if @stash_config[:indexes].has_key?(field)
+          if stash_config[:fields].has_key?(field)
             ActiveStash::Logger.warn("index for '#{field}' was defined more than once on '#{self}'")
           end
 
-          @stash_config[:indexes][field.to_s] = opts
+          stash_config[:fields][field] = opts
+        end
+
+        assocs.each do |assoc, fields|
+          unless assoc.is_a?(Symbol)
+            raise ArgumentError, "Association names must be symbols (got #{assoc.inspect})"
+          end
+
+          expand_assoc_fields(fields).each do |field|
+            k = { assoc => field }
+
+            if stash_config[:fields].has_key?(k)
+              ActiveStash::Logger.warn("index for '#{k.inspect}' was defined more than once on '#{self}'")
+            end
+
+            p :ASSOC_ASSIGN, field, opts, k
+
+            stash_config[:fields][k] = opts
+          end
         end
       end
 
+      def expand_assoc_fields(fields)
+        case fields
+        when Symbol
+          [fields]
+        when Array
+          fields
+        when Hash
+          [].tap do |expansion|
+            fields.each do |k, v|
+              expand_assoc_fields(v).each do |f|
+                expansion << { k => f }
+              end
+            end
+          end
+        else
+          raise ArgumentError, "Value of association index must be symbol or array of symbols (got #{fields.inspect})"
+        end
+      end
+
+      # TODO: Note that this will only work for 1-1 associations
+      # The only true solution here will be joins in CipherStash. Urf.
+      def stash_index(*fields, only: nil, except: nil, **assocs)
+        opts = {only: only, except: except}.compact
+
+        stash_config[:fields] += fields.map do |field|
+          unless field.is_a?(Symbol)
+            raise ArgumentError, "Field names must be symbols (got #{field.inspect})"
+          end
+
+          # FIXME: its ok to define a field twice if its settings are different
+          #if stash_config[:fields].has_key?(field)
+          #  ActiveStash::Logger.warn("index for '#{field}' was defined more than once on '#{self}'")
+          #end
+
+          [field, opts]
+        end
+
+        assocs.each do |assoc, fields|
+          unless assoc.is_a?(Symbol)
+            raise ArgumentError, "Association names must be symbols (got #{assoc.inspect})"
+          end
+
+          stash_config[:assocs] << [assoc, fields, opts]
+        end
+      end
+
+      # TODO: This could handle associations, too
       def stash_match_all(*args)
-        @stash_config ||= {}
-        @stash_config[:multi] = Array(args)
+        stash_config[:multi] = Array(args)
       end
 
       # Perform a query using the CipherStash collection indexes
@@ -196,11 +262,12 @@ module ActiveStash # :nodoc:
       end
 
       def stash_indexes # :nodoc:
-        @stash_indexes ||= StashIndexes.new(self, @stash_config).build!
+        @stash_indexes ||= StashIndexes.new(self, stash_config).build!
       end
 
       def stash_config
-        @stash_config || {indexes: [], multi: []}
+        # TODO: fields might be better as an array, too
+        @stash_config ||= {fields: [], assocs: [], multi: []}
       end
     end
   end

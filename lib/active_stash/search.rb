@@ -103,15 +103,25 @@ module ActiveStash # :nodoc:
       # Note: It turns out that Lockbox doesn't support serializable_hash
       self.class.collection.upsert(
         self.stash_id,
-        self.stash_attrs
+        self.stash_record
       )
     end
 
-    def stash_attrs
-      indexed_fields = self.class.stash_config[:indexes].keys
+    def stash_record
+      associated_fields =
+        self.class.stash_config[:assocs].reduce({}) do |attrs, (assoc, fields, _opts)|
+          return attrs if send(assoc).blank?
+          send(assoc).attributes.reduce(attrs) do |attrs, (k, v)|
+            attrs["__#{assoc}_#{k}"] = v if fields.include?(k)
+            attrs
+          end
+        end
 
-      self.attributes.select do |k, v|
-        indexed_fields.include?(k)
+      self.class.stash_config[:fields].reduce(associated_fields) do |attrs, (field, _)|
+        self.attributes.reduce(attrs) do |attrs, (k, v)|
+          attrs[k] = v if k == field
+          attrs
+        end
       end
     end
 
@@ -138,60 +148,6 @@ module ActiveStash # :nodoc:
         true
       end
 
-      def _stash_index(*fields, only: nil, except: nil, **assocs)
-        p :STASH_INDEX_CALL, self, fields, only, except, assocs
-        opts = {only: only, except: except}.compact
-
-        fields.each do |field|
-          unless field.is_a?(Symbol)
-            raise ArgumentError, "Field names must be symbols (got #{field.inspect})"
-          end
-
-          if stash_config[:fields].has_key?(field)
-            ActiveStash::Logger.warn("index for '#{field}' was defined more than once on '#{self}'")
-          end
-
-          stash_config[:fields][field] = opts
-        end
-
-        assocs.each do |assoc, fields|
-          unless assoc.is_a?(Symbol)
-            raise ArgumentError, "Association names must be symbols (got #{assoc.inspect})"
-          end
-
-          expand_assoc_fields(fields).each do |field|
-            k = { assoc => field }
-
-            if stash_config[:fields].has_key?(k)
-              ActiveStash::Logger.warn("index for '#{k.inspect}' was defined more than once on '#{self}'")
-            end
-
-            p :ASSOC_ASSIGN, field, opts, k
-
-            stash_config[:fields][k] = opts
-          end
-        end
-      end
-
-      def expand_assoc_fields(fields)
-        case fields
-        when Symbol
-          [fields]
-        when Array
-          fields
-        when Hash
-          [].tap do |expansion|
-            fields.each do |k, v|
-              expand_assoc_fields(v).each do |f|
-                expansion << { k => f }
-              end
-            end
-          end
-        else
-          raise ArgumentError, "Value of association index must be symbol or array of symbols (got #{fields.inspect})"
-        end
-      end
-
       # TODO: Note that this will only work for 1-1 associations
       # The only true solution here will be joins in CipherStash. Urf.
       def stash_index(*fields, only: nil, except: nil, **assocs)
@@ -207,7 +163,7 @@ module ActiveStash # :nodoc:
           #  ActiveStash::Logger.warn("index for '#{field}' was defined more than once on '#{self}'")
           #end
 
-          [field, opts]
+          [field.to_s, opts]
         end
 
         assocs.each do |assoc, fields|
@@ -215,7 +171,7 @@ module ActiveStash # :nodoc:
             raise ArgumentError, "Association names must be symbols (got #{assoc.inspect})"
           end
 
-          stash_config[:assocs] << [assoc, fields, opts]
+          stash_config[:assocs] << [assoc, fields.map(&:to_s), opts]
         end
       end
 
@@ -231,11 +187,14 @@ module ActiveStash # :nodoc:
 
       # Reindex all records into CipherStash
       def reindex
+        # TODO: eager load any associations
         records = find_each.lazy.map do |r|
           if r.stash_id.nil?
             r.update_columns(stash_id: SecureRandom.uuid)
           end
-          { id: r.stash_id, record: r.attributes }
+
+          ActiveStash::Logger.info("Indexing #{r.stash_id}")
+          { id: r.stash_id, record: r.stash_record }
         end
 
         collection.streaming_upsert(records)

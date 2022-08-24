@@ -1,4 +1,7 @@
+require_relative "./assess/name_rules"
+
 module ActiveStash
+  # @private
   class Assess
     class << self
       def run
@@ -32,41 +35,11 @@ module ActiveStash
         fields.include?("stash_id")
       end
 
-      def name_rules
-        [
-          { name: "name", display_name: "names", column_names: ["name"] },
-          { name: "last_name", display_name: "last names", column_names: ["lastname", "lname", "surname"] },
-          { name: "phone", display_name: "phone numbers", column_names: ["phone", "phonenumber"] },
-          { name: "date_of_birth", display_name: "dates of birth", column_names: ["dateofbirth", "birthday", "dob"] },
-          { name: "postal_code", display_name: "postal codes", column_names: ["zip", "zipcode", "postalcode", "postcode"] },
-          { name: "oauth_token", display_name: "OAuth tokens", column_names: ["accesstoken", "refreshtoken"] },
-        ]
-      end
-
       def suspected_personal_data(model)
-        # TODO: downcase and remove underscores
         # TODO: could also include whether or not field is encrypted in report
 
         fields = model_fields(model)
-        matches = {}
-        fields.each do |field|
-          # TODO: check if the offending column name is in the field name at all
-
-          # TODO: how to handle false positives?
-          # Name is a good example of having a high potential for a false positive. A name for a something like a "tags"
-          # table prob isn't actually sensetive and there could be a lot of examples like that.
-          #
-          # Ideally you can run the task multiple times without it re-adding things that you've already marked as false
-          # positives. This is nice for picking up new examples of PII
-
-          suspects = name_rules.select { |rule| rule[:column_names].include?(field) }
-          if suspects.size > 0
-            matches[field] ||= []
-            matches[field] << suspects
-            matches[field].flatten!
-          end
-        end
-        matches
+        NameRules.check(fields)
       end
 
       def write_report(assessment, filename)

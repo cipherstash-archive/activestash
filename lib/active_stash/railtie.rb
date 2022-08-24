@@ -30,7 +30,8 @@ module ActiveStash
     end
 
     rake_tasks do
-      load "tasks/active_stash.rake"
+      path = File.expand_path(File.join(__dir__, "../tasks/active_stash.rake"))
+      load path
     end
   end
 

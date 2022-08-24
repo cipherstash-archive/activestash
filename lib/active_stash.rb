@@ -1,3 +1,4 @@
+require "active_stash/assess"
 require "active_stash/version"
 require "git-version-bump"
 require "active_stash/error"

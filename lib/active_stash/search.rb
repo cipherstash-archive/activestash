@@ -95,7 +95,7 @@ module ActiveStash # :nodoc:
 
     # Index this record into CipherStash
     def cs_put
-      ActiveStash::Logger.info("Indexing #{self.stash_id}")
+      ActiveStash::Logger.info("Indexing #{self.class.name}[#{self.stash_id}]")
       ensure_stash_id
 
       # TODO: If this fails, throw :abort
@@ -107,12 +107,16 @@ module ActiveStash # :nodoc:
       )
     end
 
+    # TODO: Do we need to handle arbitrary nesting of associations?
     def stash_record
       associated_fields =
         self.class.stash_config[:assocs].reduce({}) do |attrs, (assoc, fields, _opts)|
-          return attrs if send(assoc).blank?
-          send(assoc).attributes.reduce(attrs) do |attrs, (k, v)|
-            attrs["__#{assoc}_#{k}"] = v if fields.include?(k)
+          if send(assoc).present?
+            send(assoc).attributes.reduce(attrs) do |attrs, (k, v)|
+              attrs["__#{assoc}_#{k}"] = v if fields.include?(k)
+              attrs
+            end
+          else
             attrs
           end
         end
@@ -148,6 +152,25 @@ module ActiveStash # :nodoc:
         true
       end
 
+      def validate_assoc_and_register_callback(assoc)
+        reflection = self.reflect_on_association(assoc)
+        
+        case reflection
+        when ActiveRecord::Reflection::HasOneReflection, ActiveRecord::Reflection::BelongsToReflection
+          reflection.klass.after_save do |record|
+            # TODO: Setting of stash ID
+            inverse_name = reflection.inverse_of.name
+            record.send(inverse_name).try(:cs_put)
+          end
+
+        when nil
+          raise "No such association on #{self.name}: '#{assoc}'" # TODO: Use an error class
+
+        else
+          raise "Only 1-to-1 associations ('belongs_to' or 'has_one') are currently supported"
+        end
+      end
+
       # TODO: Note that this will only work for 1-1 associations
       # The only true solution here will be joins in CipherStash. Urf.
       def stash_index(*fields, only: nil, except: nil, **assocs)
@@ -166,10 +189,13 @@ module ActiveStash # :nodoc:
           [field.to_s, opts]
         end
 
+        # TODO: Validate assocs and register a callback for indexing
         assocs.each do |assoc, fields|
           unless assoc.is_a?(Symbol)
             raise ArgumentError, "Association names must be symbols (got #{assoc.inspect})"
           end
+
+          validate_assoc_and_register_callback(assoc)
 
           stash_config[:assocs] << [assoc, fields.map(&:to_s), opts]
         end
@@ -224,8 +250,9 @@ module ActiveStash # :nodoc:
         @stash_indexes ||= StashIndexes.new(self, stash_config).build!
       end
 
+      # TODO: Can we collapse fields and assocs to be the same structure
+      # Treat fields as being on a "root" type and assocs are nodes
       def stash_config
-        # TODO: fields might be better as an array, too
         @stash_config ||= {fields: [], assocs: [], multi: []}
       end
     end

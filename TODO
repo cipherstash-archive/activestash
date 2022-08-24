@@ -22,4 +22,29 @@
  - "all" index
  - check that chaining to create etc still works
 
+* Handle after delete callbacks for associations
 
+* Handle nested stash types correctly
+ - Specify the record schema type in the collection using nested types, for example:
+
+   {
+     "name": "string",
+     "patient": {
+       "height": uint64,
+       "weight": uint64
+     }
+   }
+
+ - Make sure the `stash_record` method returns the same shape
+
+   {
+     name: "Dan",
+     patient: {
+       height: 180,
+       weight: 85
+     }
+   }
+
+- Index definitions need to specify fields using JSON path syntax. e.g.
+
+  field: "patient.height"

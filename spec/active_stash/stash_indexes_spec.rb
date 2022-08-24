@@ -1,6 +1,3 @@
-require_relative "../support/user2"
-require_relative "../support/migrations/create_users2"
-
 require 'rspec/expectations'
 
 RSpec::Matchers.define :have_an_exact_index do |name|
@@ -25,14 +22,6 @@ RSpec::Matchers.define :have_a_match_index do |name|
 end
 
 RSpec.describe ActiveStash::StashIndexes do
-  before(:all) do
-    CreateUsers2.migrate(:up)
-  end
-
-  after(:all) do
-    CreateUsers2.migrate(:down)
-  end
-
   let(:indexes) { User2.stash_indexes }
 
   describe "first_name" do
@@ -94,6 +83,26 @@ RSpec.describe ActiveStash::StashIndexes do
 
     it "has a multi match defined for first and last name and email" do
       expect(subject.field).to eq([:first_name, :last_name, :email])
+    end
+  end
+
+  describe "validate_assoc_and_register_callback" do
+    it "raises an error for a missing association" do
+      expect {
+        User.validate_assoc_and_register_callback(:nothing)
+      }.to raise_error(/No such association/)
+    end
+
+    it "raises an error for an unsupported association type" do
+      expect {
+        User.validate_assoc_and_register_callback(:consultations)
+      }.to raise_error(/Only 1-to-1 associations/)
+    end
+
+    it "does not raise when a valid association is provided" do
+      expect {
+        User.validate_assoc_and_register_callback(:patient)
+      }.to_not raise_error
     end
   end
 end

@@ -45,34 +45,39 @@ module ActiveStash
     private
     # TODO: This method would be handy as a public method on the collection proxy
     def stash_type
+      # TODO: This code ignores the :only and :except options meaning
+      # there may be fields here that are not indexed
+      # However, we may want to revisit this because asynchronous reindexing
+      # will need to have fields stored if new indexes are added later
       _fields = @model.stash_indexes.fields(@model)
 
-      # TODO: Add associated fields
-      @model.stash_config[:fields].inject({}) do |attrs, (field, _opts)|
+      attrs = @model.stash_config[:fields].reduce({}) do |attrs, (field, _opts)|
         type = _fields[field.to_s]
 
-        case type
-          when :text, :string
-            attrs[field] = "string"
-
-          when :timestamp, :date, :datetime
-            attrs[field] = "date"
-
-          when :float, :decimal
-            attrs[field] = "float64"
-
-          when :integer
-            attrs[field] = "uint64"
-
-          when :boolean
-            attrs[field] = "boolean"
-
-        else
-          # TODO: Give this a sensible error type
-          raise "Unknown mapping for type '#{type}'"
-        end
-
+        attrs[field] = map_db_type_to_stash_type(type)
         attrs
+      end
+
+      @model.stash_config[:assocs].reduce(attrs) do |attrs, (assoc, indexed_fields, _opts)|
+        klass = @model.reflect_on_association(assoc).klass
+        assoc_fields = @model.stash_indexes.fields(klass)
+        indexed_fields.reduce(attrs) do |attrs, indexed_field|
+          attrs["__#{assoc}_#{indexed_field}"] = map_db_type_to_stash_type(assoc_fields[indexed_field.to_s])
+          attrs
+        end
+      end
+    end
+
+    def map_db_type_to_stash_type(db_type)
+      case db_type
+        when :text, :string; "string"
+        when :timestamp, :date, :datetime; "date"
+        when :float, :decimal; "float64"
+        when :integer; "uint64"
+        when :boolean; "boolean"
+      else
+        # TODO: Give this a sensible error type
+        raise "Unknown mapping for type '#{type}'"
       end
     end
 

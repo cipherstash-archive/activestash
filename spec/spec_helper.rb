@@ -3,8 +3,25 @@ require "active_record"
 require "active_stash"
 require "active_stash/railtie"
 require "factory_bot"
+require "faker"
+
+require_relative "./support/user"
+require_relative "./support/user2"
+require_relative "./support/patient"
+require_relative "./support/consultation"
+require_relative "./support/migrations/create_users"
+require_relative "./support/migrations/create_users2"
+require_relative "./support/migrations/create_patients"
+require_relative "./support/migrations/create_consultations"
+require_relative "./support/migrations/create_medicare_cards"
 
 ActiveStash::Railtie.initializers.each(&:run)
+
+MIGRATIONS = [CreateUsers, CreateUsers2, CreatePatients, CreateConsultations, CreateMedicareCards]
+
+def migrate(direction)
+  MIGRATIONS.each { |migration| migration.migrate(direction) }
+end
 
 RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
@@ -22,11 +39,11 @@ RSpec.configure do |config|
       database: ENV["PGDATABASE"] || 'activestash_test'
     )
 
-    CreateUsers.migrate(:up)
+    migrate(:up)
   end
 
   config.after(:suite) do
-    CreateUsers.migrate(:down)
+    migrate(:down)
   end
 
   # Enable flags like --only-failures and --next-failure

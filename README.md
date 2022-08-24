@@ -389,7 +389,7 @@ User.query(email: "person@example.com", verified: true)
 To order by `dob`, do:
 
 ```ruby
-User.query(email: "person@example.com).order(:dob)
+User.query(email: "person@example.com").order(:dob)
 ```
 
 Or to use limit and offset:
@@ -404,7 +404,7 @@ You also, don't have to provide any constraints at all and just use the encrypte
 To order all records by `dob` descending and then `created_at`, do (note the call to query with no args first):
 
 ```ruby
-User.query.order(dob: :desc, :created_at)
+User.query.order(dob: :desc, created_at: :asc)
 ```
 
 ### Retrieving just Stash IDs

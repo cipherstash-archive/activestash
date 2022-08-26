@@ -4,12 +4,12 @@ module ActiveStash
     class NameRules
       RULES = [
         # TODO: names can probably be collapsed into one rule
-        { name: 'name', display_name: 'names', column_names: ['name'] },
-        { name: 'last_name', display_name: 'last names', column_names: %w[lastname lname surname] },
-        { name: 'phone', display_name: 'phone numbers', column_names: %w[phone phonenumber] },
-        { name: 'date_of_birth', display_name: 'dates of birth', column_names: %w[dateofbirth birthday dob] },
-        { name: 'postal_code', display_name: 'postal codes', column_names: %w[zip zipcode postalcode postcode] },
-        { name: 'oauth_token', display_name: 'OAuth tokens', column_names: %w[accesstoken refreshtoken] }
+        { name: 'name', display_name: 'names', column_names: ['name'], error_code: "PII001" },
+        { name: 'last_name', display_name: 'last names', column_names: %w[lastname lname surname], error_code: "PII001" },
+        { name: 'phone', display_name: 'phone numbers', column_names: %w[phone phonenumber], error_code: "PII001" },
+        { name: 'date_of_birth', display_name: 'dates of birth', column_names: %w[dateofbirth birthday dob], error_code: "PII001" },
+        { name: 'postal_code', display_name: 'postal codes', column_names: %w[zip zipcode postalcode postcode], error_code: "PII001" },
+        { name: 'oauth_token', display_name: 'OAuth tokens', column_names: %w[accesstoken refreshtoken], error_code: "PII001" }
       ]
 
       class << self

@@ -12,11 +12,21 @@ module ActiveStash
           if fields.size > 0
             puts "#{model}:"
             fields.each do |field, evidences|
-              puts "- #{model}.#{field} is suspected to contain: #{evidences.map { |e| e[:display_name] }.join(", ")}"
+              puts "- #{model}.#{field} is suspected to contain: #{evidences.map { |e| e[:display_name] }.join(", ")} (#{evidences.map{ |e| e[:error_code] }.uniq.join(", ")})"
             end
             puts
           end
         end
+
+        error_codes = assessment.map { |model, fields| fields.values }
+          .flatten
+          .map {|e| e[:error_code] }
+          .uniq
+
+        puts "Online documentation:"
+        puts "#{error_codes.map{ |e| "- https://docs.cipherstash.com/assess/checks##{e}"}.join("\n")}"
+        puts
+
         write_report(assessment, assessment_path)
       end
 
@@ -42,6 +52,7 @@ module ActiveStash
         NameRules.check(fields)
       end
 
+      # Source file and line number could also be nice to report on
       def write_report(assessment, filename)
         report = {}
         assessment.each do |model, fields|

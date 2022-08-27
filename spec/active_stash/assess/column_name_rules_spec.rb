@@ -1,4 +1,4 @@
-RSpec.describe ActiveStash::Assess::NameRules do
+RSpec.describe ActiveStash::Assess::ColumnNameRules do
   describe ".check" do
     [
       [%w(name), "names"],

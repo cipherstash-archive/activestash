@@ -1,15 +1,27 @@
 module ActiveStash
   class Assess
     # @private
-    class NameRules
+    class ColumnNameRules
       RULES = [
         # TODO: names can probably be collapsed into one rule
+        # TODO: first name?
         { name: 'name', display_name: 'names', column_names: ['name'], error_code: "PII001" },
         { name: 'last_name', display_name: 'last names', column_names: %w[lastname lname surname], error_code: "PII001" },
         { name: 'phone', display_name: 'phone numbers', column_names: %w[phone phonenumber], error_code: "PII001" },
         { name: 'date_of_birth', display_name: 'dates of birth', column_names: %w[dateofbirth birthday dob], error_code: "PII001" },
         { name: 'postal_code', display_name: 'postal codes', column_names: %w[zip zipcode postalcode postcode], error_code: "PII001" },
+        # street
         { name: 'oauth_token', display_name: 'OAuth tokens', column_names: %w[accesstoken refreshtoken], error_code: "PII001" }
+        # email
+        # ip
+        # credit card number
+        # SSN
+        # gender
+        # nationality, race, ethnicity
+        # tax file number
+        # medicare number
+        # individual healthcare identifier (IHI)... eh, less common and could have false positives
+
       ]
 
       class << self

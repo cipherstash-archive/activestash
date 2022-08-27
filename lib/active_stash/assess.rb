@@ -1,4 +1,4 @@
-require_relative "./assess/name_rules"
+require_relative "./assess/column_name_rules"
 
 module ActiveStash
   # @private
@@ -49,7 +49,7 @@ module ActiveStash
         # TODO: could also include whether or not field is encrypted in report
 
         fields = model_fields(model)
-        NameRules.check(fields)
+        ColumnNameRules.check(fields)
       end
 
       # Source file and line number could also be nice to report on

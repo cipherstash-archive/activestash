@@ -154,12 +154,21 @@ module ActiveStash # :nodoc:
 
       def validate_assoc_and_register_callback(assoc)
         reflection = self.reflect_on_association(assoc)
-        
+
         case reflection
         when ActiveRecord::Reflection::HasOneReflection, ActiveRecord::Reflection::BelongsToReflection
+          inverse_name = reflection.inverse_of.name
+
           reflection.klass.after_save do |record|
             # TODO: Setting of stash ID
-            inverse_name = reflection.inverse_of.name
+            record.send(inverse_name).try(:cs_put)
+          end
+
+          reflection.klass.after_destroy do |record|
+            # This will reindex every stash index associated with the model, not
+            # only the index that needs updating.  We can get smarter about this
+            # in the future.
+            record.send(inverse_name).reload
             record.send(inverse_name).try(:cs_put)
           end
 

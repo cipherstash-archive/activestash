@@ -94,4 +94,22 @@ RSpec.describe "Indexing Callbacks" do
       expect(mc_record["medicare_number"]).to eq("XXXX")
     end
   end
+
+  describe "Destruction of an indexed association" do
+    it "reindexes the parent record" do
+      user = create(:user)
+      medicare_card = user.medicare_card
+
+      medicare_card.medicare_number = "XXXX"
+      medicare_card.save!
+
+      user_record_before_deletion = User.collection.get(user.stash_id)
+      expect(user_record_before_deletion["__medicare_card_medicare_number"]).to eq("XXXX")
+
+      user.medicare_card.destroy
+
+      user_record_after_deletion = User.collection.get(user.stash_id)
+      expect(user_record_after_deletion["__medicare_card_medicare_number"]).to_not be_present
+    end
+  end
 end

@@ -157,7 +157,13 @@ module ActiveStash
 
     def fields
       fields = @model.attribute_types.inject({}) do |attrs, (k,v)|
-        type = ActiveRecord::Encryption::EncryptedAttributeType === v ? v.cast_type.type : v.type
+        type = v.type
+
+        # ActiveRecord encryption is available from Rails 7.
+        if Rails::VERSION::MAJOR >= 7
+          type = ActiveRecord::Encryption::EncryptedAttributeType === v ? v.cast_type.type : v.type
+        end
+
         attrs.tap { |a| a[k] = type }
       end
       handle_encrypted_types(fields)

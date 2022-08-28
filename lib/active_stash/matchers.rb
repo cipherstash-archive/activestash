@@ -1,6 +1,6 @@
 require_relative "./assess"
 
-if defined?(RSpec) && defined?(Rails)
+if defined?(RSpec)
   RSpec::Matchers.define :encrypt_sensitive_fields do
     match do |model|
       unprotected(model).empty?
@@ -20,9 +20,10 @@ if defined?(RSpec) && defined?(Rails)
     end
 
     def unprotected(model)
-      assessment = ActiveStash::Assess.read_report(assessment_path)
+      assessment = ActiveStash::Assess.new.read_report(assessment_path)
       assessment_entry = assessment.fetch(model.name, [])
         .map { |field| field[:field].to_sym }
+        # TODO: Need to check that encrypted attrs method exists
         .reject { |name| model.encrypted_attributes.include?(name) }
     end
   end

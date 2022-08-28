@@ -1,89 +1,94 @@
 require_relative "./assess/column_name_rules"
+require_relative "./error"
 
 module ActiveStash
   # @private
   class Assess
     REPORT_FILE_NAME = "active_stash_assessment.yml"
 
-    class << self
-      def run
-        assessment = models.map { |model|
-          [model.name, suspected_personal_data(model)]
-        }
-        assessment.each do |model, fields|
-          if fields.size > 0
-            puts "#{model}:"
-            fields.each do |field, evidences|
-              puts "- #{model}.#{field} is suspected to contain: #{evidences.map { |e| e[:display_name] }.join(", ")} (#{evidences.map{ |e| e[:error_code] }.uniq.join(", ")})"
-            end
-            puts
+    def initialize
+      if !defined?(Rails)
+        raise RailsUndefinedError, "ActiveStash Assess can currently only be used in Rails projects"
+      end
+
+      Rails.application.eager_load!
+
+      @assessment_path = Rails.root.join(REPORT_FILE_NAME)
+    end
+
+    def run
+      assessment = models.map { |model|
+        [model.name, suspected_personal_data(model)]
+      }
+      assessment.each do |model, fields|
+        if fields.size > 0
+          puts "#{model}:"
+          fields.each do |field, evidences|
+            puts "- #{model}.#{field} is suspected to contain: #{evidences.map { |e| e[:display_name] }.join(", ")} (#{evidences.map{ |e| e[:error_code] }.uniq.join(", ")})"
           end
+          puts
         end
-
-        error_codes = assessment.map { |model, fields| fields.values }
-          .flatten
-          .map {|e| e[:error_code] }
-          .uniq
-
-        puts "Online documentation:"
-        puts "#{error_codes.map{ |e| "- https://docs.cipherstash.com/assess/checks##{e}"}.join("\n")}"
-        puts
-
-        write_report(assessment, assessment_path)
       end
 
-      def read_report(filename)
-        # TODO: catch error here and print nice error message if report is missing.
-        # Should tell user to generate the report first.
-        YAML.load(assessment_path.read)
+      error_codes = assessment.map { |model, fields| fields.values }
+        .flatten
+        .map {|e| e[:error_code] }
+        .uniq
+
+      puts "Online documentation:"
+      puts "#{error_codes.map{ |e| "- https://docs.cipherstash.com/assess/checks##{e}"}.join("\n")}"
+      puts
+
+      write_report(assessment, @assessment_path)
+    end
+
+    def read_report(filename)
+      begin
+        YAML.load(@assessment_path.read)
+      rescue Errno::ENOENT
+        raise AssessmentNotFound, <<~STR
+          Assessment not found at #{@assessment_path}.
+
+          This probably means that the assessment hasn't been generated.
+
+          Try running `rake active_stash:assess` first.
+        STR
       end
+    end
 
-      private
+    private
 
-      def model_fields(model)
-        model.column_names
-      end
+    def model_fields(model)
+      model.column_names
+    end
 
-      def models
-        # TODO: should eager loading go here or where the task is defined?
-        Rails.application.eager_load!
-        ApplicationRecord.descendants
-      end
+    def models
+      ApplicationRecord.descendants
+    end
 
-      def secured_by_active_stash?(fields)
-        fields.include?("stash_id")
-      end
+    def secured_by_active_stash?(fields)
+      fields.include?("stash_id")
+    end
 
-      def suspected_personal_data(model)
-        # TODO: could also include whether or not field is encrypted in report
+    def suspected_personal_data(model)
+      fields = model_fields(model)
+      ColumnNameRules.check(fields)
+    end
 
-        fields = model_fields(model)
-        ColumnNameRules.check(fields)
-      end
-
-      # Source file and line number could also be nice to report on
-      def write_report(assessment, filename)
-        report = {}
-        assessment.each do |model, fields|
-          fields.each do |field, reasons|
-            display = reasons.map { |r| r[:display_name] }.join(", ")
-            report[model] ||= []
-            report[model] << { field: field, comment: "suspected to contain: #{display}" }
-          end
+    # Source file and line number could also be nice to report on
+    def write_report(assessment, filename)
+      report = {}
+      assessment.each do |model, fields|
+        fields.each do |field, reasons|
+          display = reasons.map { |r| r[:display_name] }.join(", ")
+          report[model] ||= []
+          report[model] << { field: field, comment: "suspected to contain: #{display}" }
         end
-
-        File.open(filename, "w") { |file| file.write(report.to_yaml) }
-
-        puts "Assessment written to: #{filename}"
       end
 
-      def assessment_path
-        # TODO: this depends on rails. Consider defaulting to Rails root if it exist and then
-        # falling back on the parent of lib, and then failing if neither of them are found.
-        # Or can just require it to be explicitly set if not a Rails project.
-        # Would also be nice to be able to configure this.
-        Rails.root.join(REPORT_FILE_NAME)
-      end
+      File.open(filename, "w") { |file| file.write(report.to_yaml) }
+
+      puts "Assessment written to: #{filename}"
     end
   end
 end

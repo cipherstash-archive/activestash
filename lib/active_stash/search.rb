@@ -153,6 +153,15 @@ module ActiveStash # :nodoc:
       end
 
       def validate_assoc_and_register_callback(assoc)
+
+        # NOTE that handling reindexes of the parent model after changes or
+        # deletions to a child model is implemented in a very naive way and will
+        # lead to N+1 issues when we support `has_many`.  This is because a
+        # reindexing will occur on the parent for every changed associated
+        # record.  A better implementation would be to set a flag
+        # "reindex_is_required" and also hook into after_commit, check if the
+        # flag is set and only then execute a single redindex operation.
+
         reflection = self.reflect_on_association(assoc)
 
         case reflection

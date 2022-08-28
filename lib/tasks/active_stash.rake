@@ -24,7 +24,7 @@ end
 namespace :active_stash do
   desc "assess what data is sensitive"
   task(:assess => :environment) do
-    ActiveStash::Assess.run
+    ActiveStash::Assess.new.run
   end
 
   desc "Signup"

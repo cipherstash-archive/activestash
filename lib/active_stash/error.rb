@@ -5,6 +5,11 @@ module ActiveStash
 
   class QueryError < ActiveStashError; end
 
+  # Raised when attempting to use a feature that requires Rails
+  class RailsUndefinedError < ActiveStashError; end
+
+  class AssessError < ActiveStashError; end
+
   # Raised when no collection exists
   class CollectionError < ActiveStashError
     def initialize(message = nil, name: nil)
@@ -52,4 +57,6 @@ module ActiveStash
       STR
     end
   end
+
+  class AssessmentNotFound < AssessError; end
 end

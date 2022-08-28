@@ -3,6 +3,8 @@ require_relative "./assess/column_name_rules"
 module ActiveStash
   # @private
   class Assess
+    REPORT_FILE_NAME = "active_stash_assessment.yml"
+
     class << self
       def run
         assessment = models.map { |model|
@@ -30,6 +32,12 @@ module ActiveStash
         write_report(assessment, assessment_path)
       end
 
+      def read_report(filename)
+        # TODO: catch error here and print nice error message if report is missing.
+        # Should tell user to generate the report first.
+        YAML.load(assessment_path.read)
+      end
+
       private
 
       def model_fields(model)
@@ -37,6 +45,7 @@ module ActiveStash
       end
 
       def models
+        # TODO: should eager loading go here or where the task is defined?
         Rails.application.eager_load!
         ApplicationRecord.descendants
       end
@@ -69,11 +78,11 @@ module ActiveStash
       end
 
       def assessment_path
-        Rails.root.join("active_stash_assessment.yml")
-      end
-
-      def read_report(filename)
-        YAML.load(assessment_path.read)
+        # TODO: this depends on rails. Consider defaulting to Rails root if it exist and then
+        # falling back on the parent of lib, and then failing if neither of them are found.
+        # Or can just require it to be explicitly set if not a Rails project.
+        # Would also be nice to be able to configure this.
+        Rails.root.join(REPORT_FILE_NAME)
       end
     end
   end

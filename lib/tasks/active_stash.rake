@@ -22,7 +22,7 @@ def error(message)
 end
 
 namespace :active_stash do
-  desc "assess what data is sensitive"
+  desc "Assess sensitive data used in a Rails application and generate a report"
   task(:assess => :environment) do
     ActiveStash::Assess.new.run
   end

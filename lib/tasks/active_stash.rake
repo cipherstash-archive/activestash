@@ -72,7 +72,8 @@ namespace :active_stash do
     end
     CipherStash::Client::Profile.create(ENV.fetch("CS_PROFILE_NAME", "default"), ActiveStash::Logger.instance, workspace: args[:workspace])
   rescue CipherStash::Client::Error::CreateProfileFailure => ex
-    puts "handling error for create profile here"
+    error(ex.message)
+  rescue CipherStash::Client::Error::LoadProfileFailure => ex
     error(ex.message)
   end
 

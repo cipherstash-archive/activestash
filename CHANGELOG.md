@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+* Support for filter parameters.
+
 ### Fixed
 
 * Fixed a bug where Rake tasks would not load correctly if users had a `tasks/active_stash.rake` file defined within a project.

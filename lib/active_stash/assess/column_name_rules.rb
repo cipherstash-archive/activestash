@@ -18,24 +18,15 @@ module ActiveStash
         { name: 'medicare_number', display_name: 'medicare numbers', column_names: ['medicarenumber'], error_code: "AS0001" },
       ]
 
-      class << self
-        def check(field_names)
-          # TODO: how to handle false positives?
-          # Name is a good example of having a high potential for a false positive. A name for a something like a "tags"
-          # table prob isn't actually sensetive and there could be a lot of examples like that.
-          #
-          # Ideally you can run the task multiple times without it re-adding things that you've already marked as false
-          # positives. This is nice for picking up new examples of PII
+      def self.check(field_names)
+        {}.tap do |matches|
+          field_names.each do |field_name|
+            suspects = RULES.select { |rule| rule[:column_names].include?(field_name.gsub("_", "")) }
 
-          {}.tap do |matches|
-            field_names.each do |field_name|
-              suspects = RULES.select { |rule| rule[:column_names].include?(field_name.gsub("_", "")) }
-
-              if suspects.size > 0
-                matches[field_name] ||= []
-                matches[field_name] << suspects
-                matches[field_name].flatten!
-              end
+            if suspects.size > 0
+              matches[field_name] ||= []
+              matches[field_name] << suspects
+              matches[field_name].flatten!
             end
           end
         end

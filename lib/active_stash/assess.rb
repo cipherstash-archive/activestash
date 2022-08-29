@@ -75,7 +75,6 @@ module ActiveStash
       ColumnNameRules.check(fields)
     end
 
-    # Source file and line number could also be nice to report on
     def write_report(assessment, filename)
       report = {}
       assessment.each do |model, fields|

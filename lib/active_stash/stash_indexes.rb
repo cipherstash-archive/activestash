@@ -38,10 +38,11 @@ module ActiveStash
       end
     end
 
-    def self.match(field)
+    def self.match(field, **opts)
       new(field, "#{field}_match").tap do |index|
         index.type = :match
         index.valid_ops = [:match]
+        index.options = opts
       end
     end
 
@@ -137,7 +138,7 @@ module ActiveStash
 
           targets = validate_unique_targets(targets, options, field)
 
-          @indexes.concat(new_indexes(field, targets))
+          @indexes.concat(new_indexes(field, targets, options))
         end
       end
 
@@ -241,7 +242,7 @@ module ActiveStash
         end
       end
 
-      def new_indexes(field, index_types)
+      def new_indexes(field, index_types, index_options)
         if index_types.empty?
           ActiveStash::Logger.warn("configuration for '#{field}' means that it has no stash indexes defined")
         end
@@ -250,7 +251,7 @@ module ActiveStash
           case index_type
             when :exact; Index.exact(field)
             when :range; Index.range(field)
-            when :match; Index.match(field)
+            when :match; Index.match(field, index_options)
             when :exact_unique; Index.exact_unique(field)
             when :range_unique; Index.range_unique(field)
           end

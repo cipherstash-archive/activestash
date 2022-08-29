@@ -5,6 +5,7 @@ module ActiveStash
   # @private
   class Assess
     REPORT_FILE_NAME = "active_stash_assessment.yml"
+    DOCS_BASE_URL = "https://docs.cipherstash.com/assess/checks"
 
     def initialize
       if !defined?(Rails)
@@ -17,9 +18,8 @@ module ActiveStash
     end
 
     def run
-      assessment = models.map { |model|
-        [model.name, suspected_personal_data(model)]
-      }
+      assessment = models.map { |model| [model.name, suspected_personal_data(model)] }
+
       assessment.each do |model, fields|
         if fields.size > 0
           puts "#{model}:"
@@ -36,7 +36,7 @@ module ActiveStash
         .uniq
 
       puts "Online documentation:"
-      puts "#{error_codes.map{ |e| "- https://docs.cipherstash.com/assess/checks##{e}"}.join("\n")}"
+      puts "#{error_codes.map{ |e| "- #{DOCS_BASE_URL}##{e}"}.join("\n")}"
       puts
 
       write_report(assessment, @assessment_path)

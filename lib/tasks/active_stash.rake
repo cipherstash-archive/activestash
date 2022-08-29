@@ -71,6 +71,9 @@ namespace :active_stash do
         exit 1
     end
     CipherStash::Client::Profile.create(ENV.fetch("CS_PROFILE_NAME", "default"), ActiveStash::Logger.instance, workspace: args[:workspace])
+  rescue CipherStash::Client::Error::CreateProfileFailure => ex
+    puts "handling error for create profile here"
+    error(ex.message)
   end
 
   desc "Reindex the CipherStash collection for the given model"

@@ -56,6 +56,20 @@ namespace :active_stash do
 
   desc "Login to stash workspace"
   task :login, [:workspace] do |task, args|
+    if args[:workspace].nil?
+        error("Please provide a workspace ID.")
+        info("")
+        info("Using bash:")
+        info("")
+        info("rake active_stash:login[YOURWORKSPACEID]")
+        info("")
+        info("Using zsh:")
+        info("")
+        info("rake active_stash:login\\[YOURWORKSPACEID\\]")
+        info("")
+        info("")
+        exit 1
+    end
     CipherStash::Client::Profile.create(ENV.fetch("CS_PROFILE_NAME", "default"), ActiveStash::Logger.instance, workspace: args[:workspace])
   end
 

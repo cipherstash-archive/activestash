@@ -5,9 +5,10 @@ module ActiveStash
 
   class QueryError < ActiveStashError; end
 
-  # Raised when attempting to use a feature that requires Rails
+  # Raised when attempting to use a feature that requires Rails.
   class RailsUndefinedError < ActiveStashError; end
 
+  # Parent class of Assess-related errors.
   class AssessError < ActiveStashError; end
 
   # Raised when no collection exists
@@ -58,5 +59,6 @@ module ActiveStash
     end
   end
 
+  # Raised when an assessment file is not found (likely because it has not been generated).
   class AssessmentNotFound < AssessError; end
 end

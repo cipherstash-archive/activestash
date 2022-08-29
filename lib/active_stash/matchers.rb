@@ -20,7 +20,7 @@ if defined?(RSpec)
     end
 
     def unprotected(model)
-      assessment = ActiveStash::Assess.new.read_report(assessment_path)
+      assessment = ActiveStash::Assess.new.read_report
       assessment_entry = assessment.fetch(model.name, [])
         .map { |field| field[:field].to_sym }
         .reject { |field_name| encrypted?(model, field_name) }

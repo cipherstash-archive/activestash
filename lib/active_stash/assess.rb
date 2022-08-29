@@ -2,6 +2,10 @@ require_relative "./assess/column_name_rules"
 require_relative "./error"
 
 module ActiveStash
+  # Class for generating, writing, and reading Assess reports.
+  #
+  # Currently only supports Rails applications.
+  #
   # @private
   class Assess
     REPORT_FILE_NAME = "active_stash_assessment.yml"
@@ -17,6 +21,7 @@ module ActiveStash
       @assessment_path = Rails.root.join(REPORT_FILE_NAME)
     end
 
+    # Run an assessment and generate a report. Results are printed to stdout and written to active_stash_assessment.yml.
     def run
       assessment = models.map { |model| [model.name, suspected_personal_data(model)] }
 
@@ -42,7 +47,12 @@ module ActiveStash
       write_report(assessment, @assessment_path)
     end
 
-    def read_report(filename)
+    # Read the report from active_stash_assessment.yml.
+    #
+    # @return [Hash] the report results.
+    #
+    # @raise [ActiveStash::AssessmentNotFound] if the report does not exist.
+    def read_report
       begin
         YAML.load(@assessment_path.read)
       rescue Errno::ENOENT

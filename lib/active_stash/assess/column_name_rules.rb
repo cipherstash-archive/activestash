@@ -1,5 +1,7 @@
 module ActiveStash
   class Assess
+    # Rules for checking column names for sensitive data.
+    #
     # @private
     class ColumnNameRules
       ERR_PII = "AS0001"
@@ -23,6 +25,12 @@ module ActiveStash
         { name: 'medicare_number', display_name: 'medicare numbers', column_names: ['medicarenumber'], error_code: ERR_PHI },
       ]
 
+      # Check the given field names for names of fields that likely contain sensitive data.
+      #
+      # Underscores are removed from field names before checks run.
+      #
+      # @return [Hash<String, Array>] a hash where keys are the names of fields that likely contain sensitive data
+      # and values contain an array of hashes with details on the checks.
       def self.check(field_names)
         {}.tap do |matches|
           field_names.each do |field_name|

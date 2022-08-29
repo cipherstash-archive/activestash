@@ -31,7 +31,7 @@ module ActiveStash
           end
         end
       end
-    
+
       {"indexes" => indexes, "type" => stash_type}
     end
 
@@ -68,7 +68,14 @@ module ActiveStash
           { "kind" => "ngram", "tokenLength" => 3 }
         ],
         "tokenizer" => { "kind" => "standard" }
-      }
+      }.tap do |idx|
+        if index.options.key?(:filter_size)
+          idx["filterSize"] = index.options[:filter_size]
+        end
+        if index.options.key?(:filter_term_bits)
+          idx["filterTermBits"] = index.options[:filter_term_bits]
+        end
+      end
 
       schema
     end

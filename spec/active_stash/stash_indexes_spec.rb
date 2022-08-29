@@ -1,5 +1,7 @@
 require_relative "../support/user2"
+require_relative "../support/user5"
 require_relative "../support/migrations/create_users2"
+require_relative "../support/migrations/create_users5"
 require_relative "../spec_helper.rb"
 
 require 'rspec/expectations'
@@ -74,6 +76,26 @@ RSpec.describe ActiveStash::StashIndexes do
 
     it "has a multi match defined for first and last name and email" do
       expect(subject.field).to eq([:first_name, :last_name, :email])
+    end
+
+    context "with filter options" do
+      before(:all) do
+        CreateUsers5.migrate(:up)
+      end
+
+      after(:all) do
+        CreateUsers5.migrate(:down)
+      end
+
+      subject { ActiveStash::SchemaBuilder.new(User5).build }
+
+      it "passes the filterSize parameter into the collection schema" do
+        expect(subject["indexes"]["__match_multi"]["filterSize"]).to eq(512)
+      end
+
+      it "passes the filterTermBits parameter into the collection schema" do
+        expect(subject["indexes"]["__match_multi"]["filterTermBits"]).to eq(6)
+      end
     end
   end
 end

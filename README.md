@@ -103,7 +103,7 @@ $ rails c
  => []  # no records, because the database isn't searchable
  >> User.query(email: "grace@example.com")
  => [
-   #<User:0x00000001138a42b0                                      
+   #<User:0x00000001138a42b0
   id: 7,
   name: "Grace Hopper",
   email: "grace@example.com",
@@ -247,6 +247,19 @@ User.query("ruby")
 
 For more information on index types and their options, see the [CipherStash
 docs](https://docs.cipherstash.com/reference/index-types/index.html).
+
+
+## Match Index Filter Options
+
+You can adjust the parameters of the filters used for match indexes by passing the `filter_term_bits` and/or `filter_size` options to `stash_index` or `stash_match_all`:
+
+```ruby
+stash_index :my_string, filter_size: 512, filter_term_bits: 6
+stash_match_all :first_name, :last_name, :email, filter_size: 1024, filter_term_bits: 5
+```
+
+For more information on filter parameters, see the [CipherStash docs](https://docs.cipherstash.com/reference/index-types/match.html#common-options).
+
 
 ## Unique indexes
 
@@ -573,7 +586,7 @@ If you have push access to the GitHub repository, you can make a release by doin
 
 ## Need help?
 
-Head over to our [support forum](https://discuss.cipherstash.com/), and we'll get back to you super quick! 
+Head over to our [support forum](https://discuss.cipherstash.com/), and we'll get back to you super quick!
 
 ## Contributing
 

@@ -1,6 +1,6 @@
 module ActiveStash
   class Index
-    attr_accessor :type, :valid_ops, :unique
+    attr_accessor :type, :valid_ops, :unique, :options
     attr_reader :field
     attr_reader :name
 
@@ -20,6 +20,7 @@ module ActiveStash
     def initialize(field, name = field)
       @field = field
       @name = name.to_s
+      @options = {}
     end
 
     def self.exact(field)
@@ -44,10 +45,11 @@ module ActiveStash
       end
     end
 
-    def self.match_multi(fields, name)
+    def self.match_multi(fields, name, **opts)
       new(fields, name).tap do |index|
         index.type = :match
         index.valid_ops = [:match]
+        index.options = opts
       end
     end
 
@@ -141,15 +143,20 @@ module ActiveStash
 
       # TODO: Test this case
       if @stash_config[:multi]
+        opts = {}
         # Check that all multi fields are texty
         @stash_config[:multi].each do |field|
-          type = _fields[field.to_s]
-          unless type == :string || type == :text
-            raise ConfigError, "Cannot specify field '#{field}' in stash_match_all because it is neither a string nor text type"
+          if field.is_a?(Hash)
+            opts = field
+          else
+            type = _fields[field.to_s]
+            unless type == :string || type == :text
+              raise ConfigError, "Cannot specify field '#{field}' in stash_match_all because it is neither a string nor text type"
+            end
           end
         end
 
-        @indexes << Index.match_multi(@stash_config[:multi], "__match_multi")
+        @indexes << Index.match_multi(@stash_config[:multi], "__match_multi", **opts)
       end
 
       self
@@ -197,10 +204,10 @@ module ActiveStash
       #
       # It will raise a config error if a unique key has been provided and only a match index has been set on the field.
       #
-      # Otherwise will map through the targets and update only the exact and range indexes as 
+      # Otherwise will map through the targets and update only the exact and range indexes as
       # unique indexes and return other targets as is.
       def validate_unique_targets(targets, options, field)
-        unique_constraint_on_match_index = 
+        unique_constraint_on_match_index =
         if !options.key?(:unique)
           targets
         elsif unique_constraint_on_match_index?(options, targets)

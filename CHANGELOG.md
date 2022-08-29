@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 * Support for filter parameters.
+* Error handling on StashRB errors returned when logging in.
 
 ## [0.7.1]
 

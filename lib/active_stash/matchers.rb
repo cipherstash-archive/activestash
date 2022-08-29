@@ -23,8 +23,11 @@ if defined?(RSpec)
       assessment = ActiveStash::Assess.new.read_report(assessment_path)
       assessment_entry = assessment.fetch(model.name, [])
         .map { |field| field[:field].to_sym }
-        # TODO: Need to check that encrypted attrs method exists
-        .reject { |name| model.encrypted_attributes.include?(name) }
+        .reject { |field_name| encrypted?(model, field_name) }
+    end
+
+    def encrypted?(model, field_name)
+      model.respond_to?(:encrypted_attributes) && model.encrypted_attributes.include?(field_name)
     end
   end
 end

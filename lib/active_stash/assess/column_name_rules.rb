@@ -27,14 +27,15 @@ module ActiveStash
 
       # Check the given field names for names of fields that likely contain sensitive data.
       #
-      # Underscores are removed from field names before checks run.
+      # Field names are singularized and underscores are removed before checks run.
       #
       # @return [Hash<String, Array>] a hash where keys are the names of fields that likely contain sensitive data
       # and values contain an array of hashes with details on the checks.
       def self.check(field_names)
         {}.tap do |matches|
           field_names.each do |field_name|
-            suspects = RULES.select { |rule| rule[:column_names].include?(field_name.gsub("_", "")) }
+            normalized_field_name = field_name.gsub("_", "").singularize
+            suspects = RULES.select { |rule| rule[:column_names].include?(normalized_field_name) }
 
             if suspects.size > 0
               matches[field_name] ||= []

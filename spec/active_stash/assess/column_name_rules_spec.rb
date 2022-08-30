@@ -2,8 +2,10 @@ RSpec.describe ActiveStash::Assess::ColumnNameRules do
   describe ".check" do
     [
       ["name", "names", "AS0001"],
+      ["names", "names", "AS0001"],
       ["lastname", "names", "AS0001"],
       ["last_name", "names", "AS0001"],
+      ["last_names", "names", "AS0001"],
       ["lname", "names", "AS0001"],
       ["surname", "names", "AS0001"],
       ["firstname", "names", "AS0001"],

@@ -1,6 +1,6 @@
 module ActiveStash
   class Index
-    attr_accessor :type, :valid_ops, :unique
+    attr_accessor :type, :valid_ops, :unique, :options
     attr_reader :field
     attr_reader :name
 
@@ -20,6 +20,7 @@ module ActiveStash
     def initialize(field, name = field)
       @field = field
       @name = name.to_s
+      @options = {}
     end
 
     def self.exact(field)
@@ -37,17 +38,19 @@ module ActiveStash
       end
     end
 
-    def self.match(field)
+    def self.match(field, **opts)
       new(field, "#{field}_match").tap do |index|
         index.type = :match
         index.valid_ops = [:match]
+        index.options = opts
       end
     end
 
-    def self.match_multi(fields, name)
+    def self.match_multi(fields, name, **opts)
       new(fields, name).tap do |index|
         index.type = :match
         index.valid_ops = [:match]
+        index.options = opts
       end
     end
 
@@ -135,21 +138,26 @@ module ActiveStash
 
           targets = validate_unique_targets(targets, options, field)
 
-          @indexes.concat(new_indexes(field, targets))
+          @indexes.concat(new_indexes(field, targets, options))
         end
       end
 
       # TODO: Test this case
       if @stash_config[:multi]
+        opts = {}
         # Check that all multi fields are texty
         @stash_config[:multi].each do |field|
-          type = _fields[field.to_s]
-          unless type == :string || type == :text
-            raise ConfigError, "Cannot specify field '#{field}' in stash_match_all because it is neither a string nor text type"
+          if field.is_a?(Hash)
+            opts = field
+          else
+            type = _fields[field.to_s]
+            unless type == :string || type == :text
+              raise ConfigError, "Cannot specify field '#{field}' in stash_match_all because it is neither a string nor text type"
+            end
           end
         end
 
-        @indexes << Index.match_multi(@stash_config[:multi], "__match_multi")
+        @indexes << Index.match_multi(@stash_config[:multi], "__match_multi", **opts)
       end
 
       self
@@ -197,10 +205,10 @@ module ActiveStash
       #
       # It will raise a config error if a unique key has been provided and only a match index has been set on the field.
       #
-      # Otherwise will map through the targets and update only the exact and range indexes as 
+      # Otherwise will map through the targets and update only the exact and range indexes as
       # unique indexes and return other targets as is.
       def validate_unique_targets(targets, options, field)
-        unique_constraint_on_match_index = 
+        unique_constraint_on_match_index =
         if !options.key?(:unique)
           targets
         elsif unique_constraint_on_match_index?(options, targets)
@@ -234,7 +242,7 @@ module ActiveStash
         end
       end
 
-      def new_indexes(field, index_types)
+      def new_indexes(field, index_types, index_options)
         if index_types.empty?
           ActiveStash::Logger.warn("configuration for '#{field}' means that it has no stash indexes defined")
         end
@@ -243,7 +251,7 @@ module ActiveStash
           case index_type
             when :exact; Index.exact(field)
             when :range; Index.range(field)
-            when :match; Index.match(field)
+            when :match; Index.match(field, **index_options)
             when :exact_unique; Index.exact_unique(field)
             when :range_unique; Index.range_unique(field)
           end

@@ -4,6 +4,8 @@ require "active_stash"
 require "active_stash/railtie"
 require "factory_bot"
 
+require_relative "./support/migrations/create_users"
+
 ActiveStash::Railtie.initializers.each(&:run)
 
 RSpec.configure do |config|

@@ -251,7 +251,7 @@ module ActiveStash
           case index_type
             when :exact; Index.exact(field)
             when :range; Index.range(field)
-            when :match; Index.match(field, index_options)
+            when :match; Index.match(field, **index_options)
             when :exact_unique; Index.exact_unique(field)
             when :range_unique; Index.range_unique(field)
           end

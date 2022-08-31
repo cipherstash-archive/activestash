@@ -556,18 +556,25 @@ rake active_stash:collections:create[User]
 
 ## Assess
 
-### Rake Task
+ActiveStash Assess is a tool to identify where sensitive data lives in your database, and measure your progress on protecting it.
+
+It's made of two parts: 
+
+- A [Rake task](#user-content-rake-task) for identifying database fields that include Personally Identifying Information
+- An [RSpec Matcher](#user-content-rspec-matcher) for verifying what fields have been encrypted in your database
+
+### Rake task
 
 ActiveStash includes a Rake task for assessing sensitive data used in a Rails application.
 
 This command will print results to stdout in a human-readable format and write a results file to `active_stash_assessment.yml` in the Rails project root.
 
 To run an assessment and generate a report, run:
-```
+``` bash
 rake active_stash:assess
 ```
 
-### RSpec Matcher
+### RSpec matcher
 
 After a report has been generated, you can use the `encrypt_sensitive_fields` RSpec matcher to verify that a model encrypts fields that were reported as sensitive by `rake active_stash:assess`.
 
@@ -577,7 +584,8 @@ First, make sure that the matcher is required in `spec/rails_helper.rb`:
 require 'active_stash/matchers'
 ```
 
-Next, add the matcher to the spec for the model that you'd like to test. The following example verifies that all fields reported as sensitive for the `User` model are encrypted:
+Next, add the matcher to the spec for the model that you'd like to test. 
+The following example verifies that all fields reported as sensitive for the `User` model are encrypted:
 ```ruby
 describe User do
   it "encrypts sensitive fields" do

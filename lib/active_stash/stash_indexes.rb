@@ -2,8 +2,10 @@ module ActiveStash
   class StashIndexes
     def initialize(model, config_indexes)
       @model = model
-      # TODO: Warn if no indexes defined - should we just index everything then!?
       @stash_config = config_indexes || {}
+      if config_indexes.keys.size == 0
+        ActiveStash::Logger.warn("Model #{@model.class} has no indexes defined")
+      end
     end
 
     # Returns the match_multi index if one is defined

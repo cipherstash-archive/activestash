@@ -69,7 +69,7 @@ module ActiveStash
           end
         end
 
-        @indexes << Index.match_multi(@stash_config[:multi], "__match_multi", **opts)
+        @indexes << Index.match_multi(@stash_config[:multi], **opts)
       end
 
       self
@@ -164,8 +164,8 @@ module ActiveStash
             when :exact; Index.exact(field)
             when :range; Index.range(field)
             when :match; Index.match(field, **index_options)
-            when :exact_unique; Index.exact_unique(field)
-            when :range_unique; Index.range_unique(field)
+            when :exact_unique; Index.exact(field, unique: true)
+            when :range_unique; Index.range(field, unique: true)
           end
         end
       end

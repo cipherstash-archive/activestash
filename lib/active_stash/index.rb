@@ -1,11 +1,19 @@
 module ActiveStash
   class Index
-    attr_accessor :type, :valid_ops, :unique, :options
+    attr_accessor :type, :valid_ops, :options
     attr_reader :field
-    attr_reader :name
 
     RANGE_TYPES = [:timestamp, :date, :datetime, :float, :decimal, :integer]
+
     RANGE_OPS = [:lt, :lte, :gt, :gte, :eq, :between]
+    EXACT_OPS = [:eq]
+    MATCH_OPS = [:match]
+
+    INDEX_TYPE_TO_OPS = {
+      :exact => EXACT_OPS,
+      :range => RANGE_OPS,
+      :match => MATCH_OPS
+    }
 
     OPS_HASH = {
       lt: "<",
@@ -17,63 +25,39 @@ module ActiveStash
       between: "between"
     }
 
-    def initialize(field, name = field)
+    def initialize(field, type, **opts)
       @field = field
-      @name = name.to_s
-      @options = {}
+      @type = type
+      @options = opts
+      @valid_ops = INDEX_TYPE_TO_OPS[type]
     end
 
-    def self.exact(field)
-      new(field).tap do |index|
-        index.type = :exact
-        index.valid_ops = [:eq]
-      end
-    end
-
-    def self.exact_unique(field)
-      new(field).tap do |index|
-        index.type = :exact
-        index.valid_ops = [:eq]
-        index.unique = true
-      end
+    def self.exact(field, **opts)
+      new(field, :exact, **opts)
     end
 
     def self.match(field, **opts)
-      new(field, "#{field}_match").tap do |index|
-        index.type = :match
-        index.valid_ops = [:match]
-        index.options = opts
-      end
+      new(field, :match, name: "#{field}_match", **opts)
     end
 
-    def self.match_multi(fields, name, **opts)
-      new(fields, name).tap do |index|
-        index.type = :match
-        index.valid_ops = [:match]
-        index.options = opts
-      end
+    def self.match_multi(fields, **opts)
+      new(fields, :match, name: "__match_multi", **opts)
     end
 
-    def self.range(field)
-      new(field, "#{field}_range").tap do |index|
-        index.type = :range
-        index.valid_ops = RANGE_OPS
-      end
+    def self.range(field, **opts)
+      new(field, :range, name: "#{field}_range", **opts)
     end
 
-    def self.range_unique(field)
-      new(field, "#{field}_range").tap do |index|
-        index.type = :range
-        index.valid_ops = RANGE_OPS
-        index.unique = true
-      end
+    def self.dynamic_match(field, **opts)
+      new(field, :match, name: "#{field}_dynamic_match", **opts)
     end
 
-    def self.dynamic_match(field)
-      new(field, "#{field}_dynamic_match").tap do |index|
-        index.type = :dynamic_match
-        index.valid_ops = [:match]
-      end
+    def name
+      @options[:name] || @field.to_s
+    end
+
+    def unique
+      @options[:unique]
     end
 
     def valid_op?(op)

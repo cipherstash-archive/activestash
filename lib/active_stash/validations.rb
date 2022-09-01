@@ -17,8 +17,7 @@ module ActiveStash
       # attribute (created by default with `stash_index`)
       #
       def validate_each(record, attribute, value)
-        stash_indexes = record.class.stash_indexes
-        indexes_on_attribute = stash_indexes.on(attribute)
+        indexes_on_attribute = record.class.stash_indexes.on(attribute)
 
         if indexes_on_attribute.length > 0
           result = record.class.query(attribute => value).first

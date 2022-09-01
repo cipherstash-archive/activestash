@@ -1,37 +1,46 @@
 module ActiveStash
   class StashIndexes
-    def initialize(model, config_indexes)
+    def initialize(model, config)
       @model = model
-      @stash_config = config_indexes || {}
-      if config_indexes.keys.size == 0
-        ActiveStash::Logger.warn("Model #{@model.class} has no indexes defined")
-      end
+
+      build!(config || {})
     end
 
     # Returns the match_multi index if one is defined
     def get_match_multi
-      all.find do |index|
-        index.name == "__match_multi"
-      end
+      @match_multi
     end
 
     def on(field)
-      all.select do |index|
-        index.field.to_s == field.to_s
-      end
+      @field_indexes[field.to_s] || []
     end
 
     def all
-      build! unless @indexes
       @indexes
     end
 
-    def build!
+    def fields
+      fields = @model.attribute_types.inject({}) do |attrs, (k,v)|
+        type = v.type
+
+        # ActiveRecord encryption is available from Rails 7.
+        if Rails::VERSION::MAJOR >= 7
+          type = ActiveRecord::Encryption::EncryptedAttributeType === v ? v.cast_type.type : v.type
+        end
+
+        attrs.tap { |a| a[k] = type }
+      end
+      handle_encrypted_types(fields)
+    end
+
+    private
+
+    def build!(config)
       _fields = fields()
       @indexes = []
 
-      if Hash === @stash_config[:indexes]
-        @stash_config[:indexes].each do |field, options|
+      if Hash === config[:indexes]
+        config[:indexes].each do |field, options|
           type = _fields[field.to_s]
 
           targets =
@@ -57,10 +66,10 @@ module ActiveStash
       end
 
       # TODO: Test this case
-      if @stash_config[:multi]
+      if config[:multi]
         opts = {}
         # Check that all multi fields are texty
-        @stash_config[:multi].each do |field|
+        config[:multi].each do |field|
           if field.is_a?(Hash)
             opts = field
           else
@@ -71,105 +80,99 @@ module ActiveStash
           end
         end
 
-        @indexes << Index.match_multi(@stash_config[:multi], **opts)
+        @match_multi = Index.match_multi(config[:multi], **opts)
+
+        @indexes << @match_multi
       end
 
-      self
+      @field_indexes = @indexes.each_with_object({}) do |index,field_indexes|
+        arr = (field_indexes[index.field.to_s] ||= [])
+        arr.push(index)
+      end
+
+      if @indexes.size == 0
+        ActiveStash::Logger.warn("Model #{@model.class} has no indexes defined")
+      end
     end
 
-    def fields
-      fields = @model.attribute_types.inject({}) do |attrs, (k,v)|
-        type = v.type
-
-        # ActiveRecord encryption is available from Rails 7.
-        if Rails::VERSION::MAJOR >= 7
-          type = ActiveRecord::Encryption::EncryptedAttributeType === v ? v.cast_type.type : v.type
+    def handle_encrypted_types(fields)
+      if @model.respond_to?(:lockbox_attributes)
+        @model.lockbox_attributes.each do |(attr, settings)|
+          if settings[:attribute] != settings[:encrypted_attribute]
+            fields.delete(settings[:encrypted_attribute])
+          end
         end
-
-        attrs.tap { |a| a[k] = type }
       end
-      handle_encrypted_types(fields)
+
+      ignore_ids(fields)
     end
 
-    private
-      def handle_encrypted_types(fields)
-        if @model.respond_to?(:lockbox_attributes)
-          @model.lockbox_attributes.each do |(attr, settings)|
-            if settings[:attribute] != settings[:encrypted_attribute]
-              fields.delete(settings[:encrypted_attribute])
-            end
-          end
-        end
-
-        ignore_ids(fields)
+    def ignore_ids(fields)
+      fields.tap do |f|
+        f.delete("id")
+        f.delete("stash_id")
       end
+    end
 
-      def ignore_ids(fields)
-        fields.tap do |f|
-          f.delete("id")
-          f.delete("stash_id")
-        end
-      end
+    def unique_constraint_on_match_index?(options, targets)
+      (options.key?(:unique) && targets.member?(:match)) && (!targets.member?(:exact) && !targets.member?(:range))
+    end
 
-      def unique_constraint_on_match_index?(options, targets)
-        (options.key?(:unique) && targets.member?(:match)) && (!targets.member?(:exact) && !targets.member?(:range))
-      end
-
-      # Returns original targets as is if a unique key has not been specified on the field.
-      #
-      # It will raise a config error if a unique key has been provided and only a match index has been set on the field.
-      #
-      # Otherwise will map through the targets and update only the exact and range indexes as
-      # unique indexes and return other targets as is.
-      def validate_unique_targets(targets, options, field)
-        unique_constraint_on_match_index =
-        if !options.key?(:unique)
-          targets
-        elsif unique_constraint_on_match_index?(options, targets)
-          raise ConfigError, "Cannot specify field '#{field}' with a unique constraint on match"
-        else
-          targets.map do |t|
-            case t
-            when :exact
-              options[:unique] ? :exact_unique : :exact
-            when :range
-              options[:unique] ? :range_unique : :range
-            else
-              t
-            end
+    # Returns original targets as is if a unique key has not been specified on the field.
+    #
+    # It will raise a config error if a unique key has been provided and only a match index has been set on the field.
+    #
+    # Otherwise will map through the targets and update only the exact and range indexes as
+    # unique indexes and return other targets as is.
+    def validate_unique_targets(targets, options, field)
+      unique_constraint_on_match_index =
+      if !options.key?(:unique)
+        targets
+      elsif unique_constraint_on_match_index?(options, targets)
+        raise ConfigError, "Cannot specify field '#{field}' with a unique constraint on match"
+      else
+        targets.map do |t|
+          case t
+          when :exact
+            options[:unique] ? :exact_unique : :exact
+          when :range
+            options[:unique] ? :range_unique : :range
+          else
+            t
           end
         end
       end
+    end
 
-      def target_indexes(*args)
-        options = args.extract_options!
-        if only = options[:only]
-          args.select do |index_type|
-            Array(only).include?(index_type)
-          end
-        elsif except = options[:except]
-          args.reject do |index_type|
-            Array(except).include?(index_type)
-          end
-        else
-          args
+    def target_indexes(*args)
+      options = args.extract_options!
+      if only = options[:only]
+        args.select do |index_type|
+          Array(only).include?(index_type)
         end
+      elsif except = options[:except]
+        args.reject do |index_type|
+          Array(except).include?(index_type)
+        end
+      else
+        args
+      end
+    end
+
+    def new_indexes(field, index_types, index_options)
+      if index_types.empty?
+        ActiveStash::Logger.warn("configuration for '#{field}' means that it has no stash indexes defined")
       end
 
-      def new_indexes(field, index_types, index_options)
-        if index_types.empty?
-          ActiveStash::Logger.warn("configuration for '#{field}' means that it has no stash indexes defined")
-        end
-
-        Array(index_types).map do |index_type|
-          case index_type
-            when :exact; Index.exact(field)
-            when :range; Index.range(field)
-            when :match; Index.match(field, **index_options)
-            when :exact_unique; Index.exact(field, unique: true)
-            when :range_unique; Index.range(field, unique: true)
-          end
+      Array(index_types).map do |index_type|
+        case index_type
+          when :exact; Index.exact(field)
+          when :range; Index.range(field)
+          when :match; Index.match(field, **index_options)
+          when :exact_unique; Index.exact(field, unique: true)
+          when :range_unique; Index.range(field, unique: true)
         end
       end
+    end
   end
 end

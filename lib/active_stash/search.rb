@@ -196,7 +196,7 @@ module ActiveStash # :nodoc:
       end
 
       def stash_indexes # :nodoc:
-        @stash_indexes ||= StashIndexes.new(self, @stash_config).build!
+        @stash_indexes ||= StashIndexes.new(self, @stash_config)
       end
 
       def stash_config

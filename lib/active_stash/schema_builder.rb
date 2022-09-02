@@ -14,21 +14,19 @@ module ActiveStash
     # created with a "_match" suffix (e.g. "email_match")
     #
     def build
-      indexes = {}.tap do |indexes|
-        @model.stash_indexes.all.each do |index|
-          case index.type
-            when :exact
-              exact_index!(indexes, index)
+      indexes = @model.stash_indexes.all.each_with_object({}) do |index, acc|
+        case index.type
+          when :exact
+            exact_index!(acc, index)
 
-            when :match
-              match_index!(indexes, index)
+          when :match
+            match_index!(acc, index)
 
-            when :range
-              range_index!(indexes, index)
+          when :range
+            range_index!(acc, index)
 
-            when :dynamic_match
-              dynamic_match!(indexes, index)
-          end
+          when :dynamic_match
+            dynamic_match!(acc, index)
         end
       end
 

@@ -14,15 +14,15 @@ module ActiveStash
         attrs
       end
 
-      remove_lockbox_fields(model, fields)
-      remove_id_fields(fields)
+      without_lockbox_fields(fields, model)
+      without_id_fields(fields)
 
       fields
     end
 
     private
 
-    def self.remove_lockbox_fields(model, fields)
+    def self.without_lockbox_fields(fields, model)
       if model.respond_to?(:lockbox_attributes)
         model.lockbox_attributes.each do |(attr, settings)|
           if settings[:attribute] != settings[:encrypted_attribute]
@@ -32,7 +32,7 @@ module ActiveStash
       end
     end
 
-    def self.remove_id_fields(fields)
+    def self.without_id_fields(fields)
       fields.delete("id")
       fields.delete("stash_id")
     end

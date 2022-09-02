@@ -19,29 +19,16 @@ module ActiveStash
       @indexes
     end
 
-    def fields
-      fields = @model.attribute_types.inject({}) do |attrs, (k,v)|
-        type = v.type
-
-        # ActiveRecord encryption is available from Rails 7.
-        if Rails::VERSION::MAJOR >= 7
-          type = ActiveRecord::Encryption::EncryptedAttributeType === v ? v.cast_type.type : v.type
-        end
-
-        attrs.tap { |a| a[k] = type }
-      end
-      handle_encrypted_types(fields)
-    end
-
     private
 
     def build!(config)
-      _fields = fields()
+      model_fields = ActiveStash::ModelReflection.fields(@model)
+
       @indexes = []
 
       if Hash === config[:indexes]
         config[:indexes].each do |field, options|
-          type = _fields[field.to_s]
+          type = model_fields[field.to_s]
 
           targets =
             case type
@@ -73,7 +60,7 @@ module ActiveStash
           if field.is_a?(Hash)
             opts = field
           else
-            type = _fields[field.to_s]
+            type = model_fields[field.to_s]
             unless type == :string || type == :text
               raise ConfigError, "Cannot specify field '#{field}' in stash_match_all because it is neither a string nor text type"
             end
@@ -92,25 +79,6 @@ module ActiveStash
 
       if @indexes.size == 0
         ActiveStash::Logger.warn("Model #{@model.class} has no indexes defined")
-      end
-    end
-
-    def handle_encrypted_types(fields)
-      if @model.respond_to?(:lockbox_attributes)
-        @model.lockbox_attributes.each do |(attr, settings)|
-          if settings[:attribute] != settings[:encrypted_attribute]
-            fields.delete(settings[:encrypted_attribute])
-          end
-        end
-      end
-
-      ignore_ids(fields)
-    end
-
-    def ignore_ids(fields)
-      fields.tap do |f|
-        f.delete("id")
-        f.delete("stash_id")
       end
     end
 

@@ -37,7 +37,7 @@ module ActiveStash
 
     private
     def stash_type
-      @model.stash_indexes.fields.inject({}) do |attrs, (field,type)|
+      ActiveStash::ModelReflection.fields(@model).inject({}) do |attrs, (field,type)|
         case type
           when :text, :string
             attrs[field] = "string"

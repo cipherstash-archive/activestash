@@ -17,16 +17,16 @@ module ActiveStash
       indexes = @model.stash_indexes.all.each_with_object({}) do |index, acc|
         case index.type
           when :exact
-            exact_index!(acc, index)
+            exact_index(acc, index)
 
           when :match
-            match_index!(acc, index)
+            match_index(acc, index)
 
           when :range
-            range_index!(acc, index)
+            range_index(acc, index)
 
           when :dynamic_match
-            dynamic_match!(acc, index)
+            dynamic_match(acc, index)
         end
       end
 
@@ -57,7 +57,7 @@ module ActiveStash
       end
     end
 
-    def match_index!(schema, index)
+    def match_index(schema, index)
       schema[index.name] = {
         "kind" => "match",
         "fields" => Array(index.field),
@@ -78,7 +78,7 @@ module ActiveStash
       schema
     end
 
-    def range_index!(schema, index)
+    def range_index(schema, index)
       mapping = {
         "kind" => "range",
         "field" => index.field
@@ -97,7 +97,7 @@ module ActiveStash
       schema
     end
 
-    def exact_index!(schema, index)
+    def exact_index(schema, index)
       mapping = {
         "kind" => "exact",
         "field" => index.field
@@ -116,7 +116,7 @@ module ActiveStash
       schema
     end
 
-    def dynamic_match!(schema, index)
+    def dynamic_match(schema, index)
       schema[index.name] = {
         "kind" => "dynamic-match",
         "tokenFilters" => [

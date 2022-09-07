@@ -2,15 +2,12 @@ require 'spec_helper'
 
 RSpec.describe "ActiveStash::Validations" do
   before(:each) do
-    puts "DROPPING COLLECTION #{__LINE__}"
-    User.collection.drop! rescue nil
     User.collection.create!
     User.delete_all
   end
 
   after(:each) do
     User.delete_all
-    puts "DROPPING COLLECTION #{__LINE__}"
     User.collection.drop!
   end
 

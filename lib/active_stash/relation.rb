@@ -18,6 +18,7 @@ module ActiveStash
 
     def query(*args, &block)
       @query = QueryBuilder.build_query(@klass, *args, &block)
+      puts "RELATION: #{@query.inspect}"
       self
     end
 
@@ -76,16 +77,21 @@ module ActiveStash
     end
 
     def load
+      puts "LOAD 1"
       if stash_query?
+        puts "LOAD 2 #{@loaded}"
         return @records if @loaded
 
         load_stash_ids_if_needed
+
+        puts "LOAD 2.1 #{@stash_ids}"
 
         relation = @scope.where(stash_id: @stash_ids)
         relation = relation.in_order_of(:stash_id, @stash_ids) if @stash_order
         @loaded = true
         @records = relation.load
       else
+        puts "LOAD 3"
         super
       end
     end
@@ -125,13 +131,14 @@ module ActiveStash
         end
 
         @query.constraints.each do |constraint|
+          puts "CONSTRAINT: #{constraint}"
           q.add_constraint(
             constraint.index.name,
             constraint.op.to_s,
             *constraint.values
           )
         end
-      end.records.map(&:uuid).tap do |ids|
+      end.records.tap{|r| puts "RECORDS: #{r}"}.map(&:uuid).tap do |ids|
         @stash_ids = ids
       end
     end

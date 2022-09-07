@@ -11,7 +11,6 @@ class User < ActiveRecord::Base
 
   stash_index do
     first_name :auto
-    email :auto
     dob :auto
     created_at :auto
     gender :exact

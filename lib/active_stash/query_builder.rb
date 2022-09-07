@@ -44,6 +44,7 @@ module ActiveStash
       end
 
       def method_missing(name, *args)
+        ::Kernel::puts "QUERYBULDER method_missing #{name} INDEXES #{@stash_indexes.on(name)}"
         field = Field.new(name, @stash_indexes.on(name))
         @fields << field
         field
@@ -51,6 +52,7 @@ module ActiveStash
 
       def add_hash(fields)
         fields.map do |(field_name, value)|
+          ::Kernel::puts "QUERYBULDER add_hash #{field_name} INDEXES #{@stash_indexes.on(field_name)}"
           field = Field.new(field_name, @stash_indexes.on(field_name))
           @fields << (field == value)
         end
@@ -72,7 +74,7 @@ module ActiveStash
 
       def inspect
         index_name = index ? index.name : "no-index"
-        "<#{index_name} #{op} '#{value}'>"
+        "<#{index_name} #{op} '#{values.join(", ")}'>"
       end
 
       def ==(value)

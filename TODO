@@ -22,4 +22,12 @@
  - "all" index
  - check that chaining to create etc still works
 
+-----------------------------
+
+There is *never* any point in having both range and exact index types on a field.
+
+Both types are a b-tree under the hood. Range is a semantic superset of exact.
+
+If there's a range, there's no value in also having an exact index on the field and there are also a heap of downsides: more terms need to be transmitted to the backend.
+
 

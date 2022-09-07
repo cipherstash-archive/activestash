@@ -39,6 +39,7 @@ RSpec.describe "ActiveStash::Search.query" do
 
   describe "#query simple constraints" do
     it "by exact name (single, 1 result)" do
+      puts "QUERY: #{User.query(first_name: "James").inspect}"
       expect(User.query(first_name: "James").first.first_name).to eq("James")
     end
 

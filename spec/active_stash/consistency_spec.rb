@@ -1,7 +1,4 @@
-require_relative "../support/user"
-require_relative "../support/user_inconsistent"
-require_relative "../support/user_inconsistent2"
-require_relative "../support/migrations/create_users"
+require 'spec_helper'
 
 RSpec.describe "constistency checks" do
   describe "when no collection exists" do

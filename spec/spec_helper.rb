@@ -1,10 +1,19 @@
 require "bundler/setup"
+require 'rspec/expectations'
 require "active_record"
 require "active_stash"
 require "active_stash/railtie"
 require "factory_bot"
 
-require_relative "./support/migrations/create_users"
+ActiveRecord::Base.establish_connection(
+  adapter: 'postgresql',
+  host: 'localhost',
+  username: ENV["PGUSER"] || nil,
+  password: ENV["PGPASSWORD"] || nil,
+  database: ENV["PGDATABASE"] || 'activestash_test'
+)
+
+Dir["./spec/support/migrations/*.rb"].each {|file| require  file }
 
 ActiveStash::Railtie.initializers.each(&:run)
 
@@ -16,19 +25,31 @@ RSpec.configure do |config|
   config.before(:suite) do
     FactoryBot.find_definitions
 
-    ActiveRecord::Base.establish_connection(
-      adapter: 'postgresql',
-      host: 'localhost',
-      username: ENV["PGUSER"] || nil,
-      password: ENV["PGPASSWORD"] || nil,
-      database: ENV["PGDATABASE"] || 'activestash_test'
-    )
+    # [
+    #   CreateUsers,
+    #   CreateUsers2,
+    #   CreateUsers3,
+    #   CreateUsers4,
+    #   CreateUsers5,
+    #   CreateUsers6,
+    # ].each{|m| m.migrate(:up)}
 
-    CreateUsers.migrate(:up)
+    ActiveRecord::Migration.descendants.each{|m| m.migrate(:up)}
+
+    require './spec/support/user' # This one must be loaded first
+    Dir["./spec/support/*.rb"].each {|file| require file }
   end
 
   config.after(:suite) do
-    CreateUsers.migrate(:down)
+    # [
+    #   CreateUsers6,
+    #   CreateUsers5,
+    #   CreateUsers4,
+    #   CreateUsers3,
+    #   CreateUsers2,
+    #   CreateUsers,
+    # ].each{|m| m.migrate(:down)}
+    ActiveRecord::Migration.descendants.each{|m| m.migrate(:down)}
   end
 
   # Enable flags like --only-failures and --next-failure

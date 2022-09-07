@@ -20,6 +20,12 @@ module ActiveStash
       fields
     end
 
+    def self.associations(model)
+      [:has_one, :belongs_to].map do |macro|
+        model.reflect_on_all_associations(macro)
+      end.flatten
+    end
+
     private
 
     def self.without_lockbox_fields(fields, model)

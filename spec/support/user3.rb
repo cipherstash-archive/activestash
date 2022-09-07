@@ -1,5 +1,5 @@
 class User3 < ActiveRecord::Base
-#   Example model where the field (:first_name) has not been indexed 
+#   Example model where the field (:first_name) has not been indexed
 #   into CipherStash and uniqueness validations are added.
   include ActiveStash::Search
   include ActiveStash::Validations
@@ -11,10 +11,14 @@ class User3 < ActiveRecord::Base
 
   validates_uniqueness_of :email, :first_name, if: Proc.new { |user| user.perform_validations? }
 
-  stash_index :dob, :created_at, :email
-  stash_index :gender, only: :exact
-  stash_match_all :last_name, :email
+  stash_index do
+    dob :auto
+    created_at :auto
+    email :auto
+    gender :exact
+  end
 
+  stash_match_all :last_name, :email
 
   def perform_validations?
     !self.skip_validations

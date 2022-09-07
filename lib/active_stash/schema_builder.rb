@@ -1,7 +1,7 @@
 module ActiveStash
   class SchemaBuilder
-    def initialize(model)
-      @model = model
+    def initialize(model_class)
+      @model_class = model_class
     end
 
     # Builds a schema object for the model
@@ -14,7 +14,7 @@ module ActiveStash
     # created with a "_match" suffix (e.g. "email_match")
     #
     def build
-      indexes = @model.stash_indexes.all.each_with_object({}) do |index, acc|
+      indexes = @model_class.stash_indexes.indexes.each_with_object({}) do |index, acc|
         case index.type
           when :exact
             exact_index(acc, index)
@@ -35,7 +35,7 @@ module ActiveStash
 
     private
     def stash_type
-      ActiveStash::ModelReflection.fields(@model).inject({}) do |attrs, (field,type)|
+      ActiveStash::ModelReflection.fields(@model_class).inject({}) do |attrs, (field,type)|
         case type
           when :text, :string
             attrs[field] = "string"

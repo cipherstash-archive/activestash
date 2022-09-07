@@ -5,10 +5,14 @@ class UserInconsistent < User
   self.collection_name = "activestash_test_#{ENV["ACTIVE_STASH_TEST_COLLECTION_PREFIX"] || ""}_users"
   self.table_name = "users"
 
-  stash_index :first_name, :dob, :created_at
-  stash_index :gender, only: :exact
-  stash_match_all :first_name, :last_name, :email
+  stash_index do
+    first_name :auto
+    email :auto
+    dob :auto
+    created_at :auto
+    updated_at :auto # This is the addition that will trigger the inconsistency check
+    gender :exact
+  end
 
-  # Adds
-  stash_index :updated_at
+  stash_match_all :first_name, :last_name, :email
 end

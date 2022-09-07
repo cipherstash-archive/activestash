@@ -3,7 +3,31 @@ module ActiveStash
     attr_accessor :type, :valid_ops, :options
     attr_reader :field
 
-    RANGE_TYPES = [:timestamp, :date, :datetime, :float, :decimal, :integer]
+    # TODO: boolean supports range
+    # TODO: string and text support ranges
+
+    RANGE_TYPES = [:timestamp, :date, :datetime, :float, :decimal, :integer, :boolean]
+    EXACT_TYPES = [:string, :text, :uuid]
+    MATCH_TYPES = [:string, :text]
+
+    # These index types support uniqueness.
+    # Note that when using :auto indexing with :unique, only the generated
+    # :exact index will have the uniqueness validation.
+    INDEX_TYPES_WITH_UNIQUE_SUPPORT = [:exact, :range]
+
+    FIELD_TYPE_TO_SUPPORTED_INDEX_TYPES = {
+      :timestamp => [:range],
+      :date => [:range],
+      :datetime => [:range],
+      :float => [:range],
+      :decimal => [:range],
+      :integer => [:range],
+      :string => [:range, :exact, :match],
+      :text => [:range, :exact, :match],
+      # TODO boolean should support range so that it can be sorted
+      :boolean => [:exact],
+      :uuid => [:exact],
+    }
 
     RANGE_OPS = [:lt, :lte, :gt, :gte, :eq, :between]
     EXACT_OPS = [:eq]
@@ -30,6 +54,29 @@ module ActiveStash
       @type = type
       @options = opts
       @valid_ops = INDEX_TYPE_TO_OPS[type]
+
+      # This is sub-optimal. It's a result of being able to say
+      #
+      # stash_index :email, unique: true
+      #
+      # Assuming 'email' is a string field, then exact, range and match indexes
+      # will be applied but unique only applies to the match index.
+      #
+      # The below if statement removes the unique option from the match index.
+      if @type == :match
+        @unique = false
+      end
+    end
+
+    def self.applicable_index_types(type)
+      index_types = FIELD_TYPE_TO_SUPPORTED_INDEX_TYPES[type] || []
+
+      # unless index_types
+      #   # TODO this should be an error
+      #   ActiveStash::Logger.warn("ignoring field '#{field}' which has type #{type} as index type cannot be implied")
+      # end
+
+      index_types
     end
 
     def self.exact(field, **opts)

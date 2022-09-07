@@ -1,20 +1,11 @@
-require_relative "../support/user4"
-require_relative "../support/migrations/create_users4"
-require_relative "../spec_helper.rb"
-require 'rspec/expectations'
+require 'spec_helper'
+# TODO: mover t
+# require 'rspec/expectations'
 
 # ActiveRecord Encryption is only available from Rails 7.
 
 if Rails::VERSION::MAJOR >= 7
-  RSpec.describe ActiveStash::StashIndexes do
-    before(:all) do
-      CreateUsers4.migrate(:up)
-    end
-
-    after(:all) do
-      CreateUsers4.migrate(:down)
-    end
-
+  RSpec.describe "ActiveRecord Encryption" do
     let(:indexes) { User4.stash_indexes }
 
     describe "first_name" do

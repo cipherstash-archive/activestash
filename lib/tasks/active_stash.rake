@@ -22,6 +22,11 @@ def error(message)
 end
 
 namespace :active_stash do
+  desc "Assess sensitive data used in a Rails application and generate a report"
+  task(:assess => :environment) do
+    ActiveStash::Assess.new.run
+  end
+
   desc "Signup"
   task(:signup => :environment) do
     redirect_url = "https://cipherstash.com/signup/rake"
@@ -169,4 +174,3 @@ namespace :active_stash do
     end
   end
 end
-

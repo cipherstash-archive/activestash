@@ -7,8 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.9.0]
+
 ### Added
 
+* Added Rake task and RSpec matcher for Assess. ActiveStash Assess is a tool to identify where sensitive data lives in your Rails 7 app's database, and tracking your progress on encrypting it.
+
+## [0.8.0]
+
+### Added
+
+* Check for workspace arg when logging in
 * Support for filter parameters.
 * Error handling on StashRB errors returned when logging in.
 

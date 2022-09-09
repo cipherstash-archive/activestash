@@ -568,6 +568,7 @@ ActiveStash Assess comes in two parts:
 ActiveStash includes a Rake task for assessing sensitive data used in a Rails application.
 
 This command will print results to stdout in a human-readable format and write a results file to `active_stash_assessment.yml` in the Rails project root.
+We recommend you commit this file to your repo, so you can track your progress on encrypting these fields over time.
 
 To run an assessment and generate a report, run:
 ``` bash

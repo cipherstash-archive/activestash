@@ -108,7 +108,7 @@ module ActiveStash # :nodoc:
     end
 
     def stash_attrs
-      indexed_fields = self.class.stash_indexes.indexes.map{|index| index.field}.uniq
+      indexed_fields = self.class.stash_indexes.indexes.map(&:field).uniq
 
       self.attributes.select do |k, v|
         indexed_fields.include?(k)

@@ -8,7 +8,7 @@ module ActiveStash
     end
 
     def register_callbacks
-      @callback_registration_handlers.each{|register| register.call()}
+      @callback_registration_handlers.each(&:call)
     end
   end
 end

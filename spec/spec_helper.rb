@@ -1,10 +1,19 @@
 require "bundler/setup"
+require 'rspec/expectations'
 require "active_record"
 require "active_stash"
 require "active_stash/railtie"
 require "factory_bot"
 
-require_relative "./support/migrations/create_users"
+ActiveRecord::Base.establish_connection(
+  adapter: 'postgresql',
+  host: 'localhost',
+  username: ENV["PGUSER"] || nil,
+  password: ENV["PGPASSWORD"] || nil,
+  database: ENV["PGDATABASE"] || 'activestash_test'
+)
+
+Dir["./spec/support/migrations/*.rb"].each {|file| require  file }
 
 ActiveStash::Railtie.initializers.each(&:run)
 
@@ -16,19 +25,24 @@ RSpec.configure do |config|
   config.before(:suite) do
     FactoryBot.find_definitions
 
-    ActiveRecord::Base.establish_connection(
-      adapter: 'postgresql',
-      host: 'localhost',
-      username: ENV["PGUSER"] || nil,
-      password: ENV["PGPASSWORD"] || nil,
-      database: ENV["PGDATABASE"] || 'activestash_test'
-    )
+    ActiveRecord::Migration.descendants.each{|m| m.migrate(:up)}
 
-    CreateUsers.migrate(:up)
+    # We do not have Rails auto-loaders so we must take care to load models in a sensible order.
+    require './spec/support/patient'
+    require './spec/support/medicare_card'
+    require './spec/support/user'
+    require './spec/support/user2'
+    require './spec/support/user3'
+    require './spec/support/user4'
+    require './spec/support/user5'
+    require './spec/support/user6'
+    require './spec/support/user_inconsistent'
+    require './spec/support/user_inconsistent2'
+    require './spec/support/user_unique_indexes'
   end
 
   config.after(:suite) do
-    CreateUsers.migrate(:down)
+    ActiveRecord::Migration.descendants.each{|m| m.migrate(:down)}
   end
 
   # Enable flags like --only-failures and --next-failure

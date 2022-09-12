@@ -1,5 +1,4 @@
-require_relative "support/user"
-require_relative "support/migrations/create_users"
+require 'spec_helper'
 
 RSpec.describe "ActiveStash::Search.query" do
   before(:context) do

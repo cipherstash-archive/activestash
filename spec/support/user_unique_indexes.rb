@@ -3,13 +3,18 @@ class UserUniqueIndexes < ActiveRecord::Base
   self.table_name = "users2"
   self.collection_name = "activestash_test_#{ENV["ACTIVE_STASH_TEST_COLLECTION_PREFIX"] || ""}_users2"
 
-  stash_index :first_name, except: [:match, :range], unique: true
-  stash_index :dob, :last_name
-  stash_index :gender, only: :exact
-  stash_index :title, except: [:match, :range]
-  stash_index :created_at, :updated_at, except: :range
+  stash_index do
+    auto :last_name, :dob
 
-  stash_index :email, unique: true
+    exact :email, :first_name, :gender, :title
+    unique :email
+    unique :first_name
 
-  stash_match_all :first_name, :email
+    match :email
+
+    range :created_at, :updated_at
+
+    match_all :first_name, :email
+  end
+
 end

@@ -46,11 +46,11 @@ module ActiveStash
       end
 
       def consistency_check!(collection)
-        if indexes(collection).size != stash_indexes.all.size
+        if indexes(collection).size != stash_indexes.indexes.size
           raise CollectionDivergedError, name: collection_name
         end
 
-        stash_indexes.all.each do |target|
+        stash_indexes.indexes.each do |target|
           if !has_index?(collection, target)
             raise CollectionDivergedError, name: collection_name
           end

@@ -1,8 +1,8 @@
 module ActiveStash
   module ModelReflection
 
-    def self.fields(model)
-      fields = model.attribute_types.inject({}) do |attrs, (k,v)|
+    def self.fields(model_class)
+      fields = model_class.attribute_types.inject({}) do |attrs, (k,v)|
         type = v.type
 
         # ActiveRecord encryption is available from Rails 7.
@@ -14,10 +14,26 @@ module ActiveStash
         attrs
       end
 
-      without_lockbox_fields(fields, model)
+      without_lockbox_fields(fields, model_class)
       without_id_fields(fields)
 
       fields
+    end
+
+    def self.associations(model)
+      [:has_one, :belongs_to].map do |macro|
+        model.reflect_on_all_associations(macro)
+      end.flatten
+    end
+
+    def self.association_names(model)
+      [:has_one, :belongs_to].map do |macro|
+        model.reflect_on_all_associations(macro)
+      end.flatten.map{|assoc| assoc.name }
+    end
+
+    def self.associated_model(parent_model, association)
+      parent_model.reflect_on_association(association).klass
     end
 
     private

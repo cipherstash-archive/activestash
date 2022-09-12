@@ -23,7 +23,7 @@ module ActiveStash
         if defined?(Rails) && Rails.logger
           @logger = Rails.logger
         else
-          @logger = ::Logger.new(STDOUT)
+          @logger = ::Logger.new(STDOUT, level: :debug)
         end
       end
     end

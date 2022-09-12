@@ -72,7 +72,7 @@ module ActiveStash
 
       def inspect
         index_name = index ? index.name : "no-index"
-        "<#{index_name} #{op} '#{value}'>"
+        "<#{index_name} #{op} '#{values.join(", ")}'>"
       end
 
       def ==(value)
@@ -120,9 +120,9 @@ module ActiveStash
       private
       def set(*values)
         # Find the appropriate index to use
-        @index = @available_indexes.find do |index|
+        @index = @available_indexes.select do |index|
           index.valid_op?(@op)
-        end
+        end.sort(&index_precedence).first
 
         if @index.nil?
           ::Kernel.raise "No available index for '#{@name}' using '#{@op}'"
@@ -130,6 +130,14 @@ module ActiveStash
 
         @values ||= values.map { |value| maybe_cast(value) }
         self
+      end
+
+      # Ensures that when more than one index satisfies op ==, prefer exact.
+      def index_precedence
+        precedence = [:exact, :range, :match]
+        ->(a, b) do
+          precedence.index(a.type) <=> precedence.index(b.type)
+        end
       end
 
       # Failsafe to munge types into a type we want

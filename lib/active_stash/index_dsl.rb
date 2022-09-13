@@ -254,14 +254,14 @@ module ActiveStash
             # RULE 2a.
             exact_index = indexes_defined_on_field.find{|idx| idx.type == :exact }
             if exact_index
-              exact_index.make_unique
+              exact_index.make_unique!
             else
               @indexes.push(Index.exact(field, unique: true))
             end
           else
             # RULE 2b.
             indexes_defined_on_field.each do |idx|
-              idx.make_unique
+              idx.make_unique!
             end
           end
         end

@@ -63,7 +63,7 @@ module ActiveStash
       FIELD_TYPE_TO_SUPPORTED_INDEX_TYPES[type] || []
     end
 
-    def make_unique
+    def make_unique!
       @unique = true
     end
 

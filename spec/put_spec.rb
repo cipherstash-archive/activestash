@@ -1,7 +1,4 @@
-require_relative "support/user"
-require_relative "support/user_unique_indexes"
-require_relative "support/migrations/create_users"
-require_relative "support/migrations/create_users2"
+require 'spec_helper'
 
 RSpec.describe "ActiveStash::Search.cs_put" do
   describe "#cs_put" do
@@ -40,14 +37,6 @@ RSpec.describe "ActiveStash::Search.cs_put" do
   end
 
   describe "#cs_put with unique cs indexes with a unique constraint on email" do
-    before(:all) do
-      CreateUsers2.migrate(:up)
-    end
-
-    after(:all) do
-      CreateUsers2.migrate(:down)
-    end
-
     before(:each) do
       UserUniqueIndexes.collection.create!
     end

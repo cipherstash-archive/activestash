@@ -46,14 +46,12 @@ module ActiveStash
       end
 
       def consistency_check!(collection)
-        reflection = ActiveStash::Reflection.new(collection)
-
-        if reflection.indexes.size != stash_indexes.all.size
+        if indexes(collection).size != stash_indexes.indexes.size
           raise CollectionDivergedError, name: collection_name
         end
 
-        stash_indexes.all.each do |target|
-          if !reflection.has_index?(target)
+        stash_indexes.indexes.each do |target|
+          if !has_index?(collection, target)
             raise CollectionDivergedError, name: collection_name
           end
         end
@@ -65,6 +63,19 @@ module ActiveStash
           metrics: cipherstash_metrics,
           **ActiveStash.config.to_client_opts
         )
+      end
+
+      def indexes(collection)
+        collection.instance_variable_get("@indexes")
+      end
+
+      def has_index?(collection, target)
+        self.indexes(collection).any? do |index|
+          mapping = index.instance_variable_get("@settings")["mapping"]
+          meta = index.instance_variable_get("@settings")["meta"]
+          # TODO: Check other fields, too
+          target.name == meta["$indexName"]
+        end
       end
 
       def logger

@@ -6,5 +6,7 @@ class User5 < ActiveRecord::Base
   self.table_name = "users5"
   self.collection_name = "activestash_test_#{ENV["ACTIVE_STASH_TEST_COLLECTION_PREFIX"] || ""}_users5"
 
-  stash_match_all :first_name, :last_name, :email, filter_size: 512, filter_term_bits: 6
+  stash_index do
+    match_all :first_name, :last_name, :email, filter_size: 512, filter_term_bits: 6
+  end
 end

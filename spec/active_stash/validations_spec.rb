@@ -1,15 +1,12 @@
-require_relative "../support/user"
-require_relative "../support/user3"
-require_relative "../support/migrations/create_users3"
-
+require 'spec_helper'
 
 RSpec.describe "ActiveStash::Validations" do
-  before do
+  before(:each) do
     User.collection.create!
     User.delete_all
   end
 
-  after do
+  after(:each) do
     User.delete_all
     User.collection.drop!
   end
@@ -23,7 +20,7 @@ RSpec.describe "ActiveStash::Validations" do
   end
 
   describe "when a user with a given email address exists" do
-    before { create(:user, email: "person@example.net") }
+    before(:each) { create(:user, email: "person@example.net") }
 
     it "creation of a new user with the same email fails" do
       expect {
@@ -42,15 +39,8 @@ RSpec.describe "ActiveStash::Validations" do
 end
 
 RSpec.describe "Unique validations on a field that has not been indexed into CipherStash" do
-  before(:all) do
-    CreateUsers3.migrate(:up)
-  end
-
-  after(:all) do
-    CreateUsers3.migrate(:down)
-  end
-
   before(:each) do
+    User3.collection.drop! rescue nil
     User3.collection.create!
     User3.delete_all
   end
@@ -77,7 +67,7 @@ RSpec.describe "Unique validations on a field that has not been indexed into Cip
   end
 
   describe "when a user with a given first_name exists" do
-    before { 
+    before(:each) {
       User3.create!(
         first_name: "Selina",
         last_name: "Meyer",

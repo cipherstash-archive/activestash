@@ -108,7 +108,7 @@ module ActiveStash # :nodoc:
     end
 
     def stash_attrs
-      indexed_fields = self.class.stash_config[:indexes].keys
+      indexed_fields = self.class.stash_indexes.indexes.map(&:field).uniq
 
       self.attributes.select do |k, v|
         indexed_fields.include?(k)
@@ -138,24 +138,13 @@ module ActiveStash # :nodoc:
         true
       end
 
-      def stash_index(*args)
-        opts = args.extract_options!
-
-        @stash_config ||= {}
-        @stash_config[:indexes] ||= {}
-
-        Array(args).each do |field|
-          if @stash_config[:indexes].has_key?(field)
-            ActiveStash::Logger.warn("index for '#{field}' was defined more than once on '#{self}'")
-          end
-
-          @stash_config[:indexes][field.to_s] = opts
-        end
-      end
-
-      def stash_match_all(*args)
-        @stash_config ||= {}
-        @stash_config[:multi] = Array(args)
+      def stash_index(*args, &block)
+        return if @finalized_config
+        dsl = IndexDSL.new(self)
+        dsl.instance_eval(&block)
+        @finalized_config = dsl.finalize!
+        @finalized_config.register_callbacks
+        @indexes = @finalized_config.indexes
       end
 
       # Perform a query using the CipherStash collection indexes
@@ -196,11 +185,7 @@ module ActiveStash # :nodoc:
       end
 
       def stash_indexes # :nodoc:
-        @stash_indexes ||= StashIndexes.new(self, @stash_config)
-      end
-
-      def stash_config
-        @stash_config || {indexes: [], multi: []}
+        @indexes
       end
     end
   end

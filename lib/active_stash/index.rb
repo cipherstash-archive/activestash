@@ -1,9 +1,28 @@
 module ActiveStash
   class Index
-    attr_accessor :type, :valid_ops, :options
+    attr_accessor :type, :valid_ops, :options, :name, :unique
     attr_reader :field
 
-    RANGE_TYPES = [:timestamp, :date, :datetime, :float, :decimal, :integer]
+    # TODO: boolean supports range
+    # TODO: string and text support ranges
+
+    # These index types support uniqueness.
+    # Note that when using :auto indexing with :unique, only the generated
+    # :exact index will have the uniqueness validation.
+    INDEX_TYPES_WITH_UNIQUE_SUPPORT = [:exact, :range]
+
+    FIELD_TYPE_TO_SUPPORTED_INDEX_TYPES = {
+      :timestamp => [:range],
+      :date => [:range],
+      :datetime => [:range],
+      :float => [:range],
+      :decimal => [:range],
+      :integer => [:range],
+      :string => [:range, :exact, :match],
+      :text => [:range, :exact, :match],
+      :boolean => [:range],
+      :uuid => [:range],
+    }
 
     RANGE_OPS = [:lt, :lte, :gt, :gte, :eq, :between]
     EXACT_OPS = [:eq]
@@ -29,7 +48,23 @@ module ActiveStash
       @field = field
       @type = type
       @options = opts
+      @name = @options[:name] || @field.to_s
+      @options.delete(:name)
       @valid_ops = INDEX_TYPE_TO_OPS[type]
+      @unique = @options[:unique] || false
+      @options.delete(:unique)
+    end
+
+    def self.valid_index_type_for_field_type?(index_type, field_type)
+      applicable_index_types(field_type).include?(index_type)
+    end
+
+    def self.applicable_index_types(type)
+      FIELD_TYPE_TO_SUPPORTED_INDEX_TYPES[type] || []
+    end
+
+    def make_unique!
+      @unique = true
     end
 
     def self.exact(field, **opts)
@@ -50,14 +85,6 @@ module ActiveStash
 
     def self.dynamic_match(field, **opts)
       new(field, :match, name: "#{field}_dynamic_match", **opts)
-    end
-
-    def name
-      @options[:name] || @field.to_s
-    end
-
-    def unique
-      @options[:unique]
     end
 
     def valid_op?(op)

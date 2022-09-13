@@ -1,7 +1,7 @@
 module ActiveStash
   class SchemaBuilder
-    def initialize(model)
-      @model = model
+    def initialize(model_class)
+      @model_class = model_class
     end
 
     # Builds a schema object for the model
@@ -14,21 +14,19 @@ module ActiveStash
     # created with a "_match" suffix (e.g. "email_match")
     #
     def build
-      indexes = {}.tap do |indexes|
-        @model.stash_indexes.all.each do |index|
-          case index.type
-            when :exact
-              exact_index!(indexes, index)
+      indexes = @model_class.stash_indexes.indexes.each_with_object({}) do |index, acc|
+        case index.type
+          when :exact
+            exact_index(acc, index)
 
-            when :match
-              match_index!(indexes, index)
+          when :match
+            match_index(acc, index)
 
-            when :range
-              range_index!(indexes, index)
+          when :range
+            range_index(acc, index)
 
-            when :dynamic_match
-              dynamic_match!(indexes, index)
-          end
+          when :dynamic_match
+            dynamic_match(acc, index)
         end
       end
 
@@ -37,7 +35,7 @@ module ActiveStash
 
     private
     def stash_type
-      @model.stash_indexes.fields.inject({}) do |attrs, (field,type)|
+      ActiveStash::ModelReflection.fields(@model_class).inject({}) do |attrs, (field,type)|
         case type
           when :text, :string
             attrs[field] = "string"
@@ -59,7 +57,7 @@ module ActiveStash
       end
     end
 
-    def match_index!(schema, index)
+    def match_index(schema, index)
       schema[index.name] = {
         "kind" => "match",
         "fields" => Array(index.field),
@@ -80,7 +78,7 @@ module ActiveStash
       schema
     end
 
-    def range_index!(schema, index)
+    def range_index(schema, index)
       mapping = {
         "kind" => "range",
         "field" => index.field
@@ -99,7 +97,7 @@ module ActiveStash
       schema
     end
 
-    def exact_index!(schema, index)
+    def exact_index(schema, index)
       mapping = {
         "kind" => "exact",
         "field" => index.field
@@ -118,7 +116,7 @@ module ActiveStash
       schema
     end
 
-    def dynamic_match!(schema, index)
+    def dynamic_match(schema, index)
       schema[index.name] = {
         "kind" => "dynamic-match",
         "tokenFilters" => [

@@ -556,7 +556,7 @@ rake active_stash:collections:create[User]
 
 ## Assess
 
-ActiveStash Assess is a tool to identify where sensitive data lives in your database, and tracking your progress on encrypting it.
+ActiveStash Assess is a tool to identify where sensitive data lives in your database, and track your progress on encrypting it.
 
 ActiveStash Assess comes in two parts:
 

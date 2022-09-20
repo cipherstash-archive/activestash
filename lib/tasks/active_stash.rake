@@ -23,8 +23,8 @@ end
 
 namespace :active_stash do
   desc "Assess sensitive data used in a Rails application and generate a report"
-  task(:assess => :environment) do
-    ActiveStash::Assess.new.run
+  task(:assess, [:quiet] => :environment) do |task, args|
+    ActiveStash::Assess.new(**args.to_hash).run
   end
 
   desc "Signup"
@@ -172,5 +172,11 @@ namespace :active_stash do
 
       puts table
     end
+  end
+end
+
+Rake::Task["db:migrate"].enhance do
+  if ActiveStash::Assess.report_exists?
+    Rake::Task["active_stash:assess"].execute({quiet: true})
   end
 end

@@ -21,13 +21,37 @@ if defined?(RSpec)
 
     def unprotected(model)
       assessment = ActiveStash::Assess.new.read_report
-      assessment_entry = assessment.fetch(model.name, [])
+
+      if assessment_outdated?(model, assessment)
+        raise ActiveStash::AssessmentOutdated, <<~STR
+          Assessment file is outdated.
+
+          This probably means that the DB schema has changed since the assessment was generated.
+
+          Try running `rake active_stash:assess` to update the assessment file.
+        STR
+      end
+
+      assessment.fetch(model.name, [])
+        .reject { |field| !field[:sensitive] }
         .map { |field| field[:field].to_sym }
         .reject { |field_name| encrypted?(model, field_name) }
     end
 
     def encrypted?(model, field_name)
       model.respond_to?(:encrypted_attributes) && model.encrypted_attributes.include?(field_name)
+    end
+
+    # Check if all fields in the model are in the report. We only care if the fields for the
+    # model currently being tested are out of date.
+    def assessment_outdated?(model, assessment)
+      all_field_names = model.column_names.sort
+      report_field_names = assessment
+        .fetch(model.name, [])
+        .map { |field| field[:field] }
+        .sort
+
+      report_field_names != all_field_names
     end
   end
 end

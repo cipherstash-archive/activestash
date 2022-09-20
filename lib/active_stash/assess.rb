@@ -11,40 +11,27 @@ module ActiveStash
     REPORT_FILE_NAME = "active_stash_assessment.yml"
     DOCS_BASE_URL = "https://docs.cipherstash.com/assess/checks"
 
-    def initialize
+    def initialize(quiet: false)
       if !defined?(Rails)
         raise RailsUndefinedError, "ActiveStash Assess can currently only be used in Rails projects"
       end
 
       Rails.application.eager_load!
 
-      @assessment_path = Rails.root.join(REPORT_FILE_NAME)
+      @assessment_path = self.class.assessment_path
+      @quiet = quiet
     end
 
     # Run an assessment and generate a report. Results are printed to stdout and written to active_stash_assessment.yml.
     def run
       assessment = models.map { |model| [model.name, suspected_personal_data(model)] }
 
-      assessment.each do |model, fields|
-        if fields.size > 0
-          puts "#{model}:"
-          fields.each do |field, evidences|
-            puts "- #{model}.#{field} is suspected to contain: #{evidences.map { |e| e[:display_name] }.join(", ")} (#{evidences.map{ |e| e[:error_code] }.uniq.join(", ")})"
-          end
-          puts
-        end
-      end
-
-      error_codes = assessment.map { |model, fields| fields.values }
-        .flatten
-        .map {|e| e[:error_code] }
-        .uniq
-
-      puts "Online documentation:"
-      puts "#{error_codes.map{ |e| "- #{DOCS_BASE_URL}##{e}"}.join("\n")}"
-      puts
-
       write_report(assessment, @assessment_path)
+
+      unless @quiet
+        print_results(assessment)
+        puts "Assessment written to: #{@assessment_path}"
+      end
     end
 
     # Read the report from active_stash_assessment.yml.
@@ -66,7 +53,38 @@ module ActiveStash
       end
     end
 
+    def self.assessment_path
+      Rails.root.join(REPORT_FILE_NAME)
+    end
+
+    def self.report_exists?
+      File.exist?(assessment_path)
+    end
+
     private
+
+    def print_results(assessment)
+      assessment.each do |model, fields|
+        if fields.size > 0
+          puts "#{model}:"
+          fields.each do |field, evidences|
+            if evidences.size > 0
+              puts "- #{model}.#{field} is suspected to contain: #{evidences.map { |e| e[:display_name] }.join(", ")} (#{evidences.map{ |e| e[:error_code] }.uniq.join(", ")})"
+            end
+          end
+          puts
+        end
+      end
+
+      error_codes = assessment.map { |model, fields| fields.values }
+        .flatten
+        .map {|e| e[:error_code] }
+        .uniq
+
+      puts "Online documentation:"
+      puts "#{error_codes.map{ |e| "- #{DOCS_BASE_URL}##{e}"}.join("\n")}"
+      puts
+    end
 
     def model_fields(model)
       model.column_names
@@ -89,15 +107,18 @@ module ActiveStash
       report = {}
       assessment.each do |model, fields|
         fields.each do |field, reasons|
-          display = reasons.map { |r| r[:display_name] }.join(", ")
           report[model] ||= []
-          report[model] << { field: field, comment: "suspected to contain: #{display}" }
+
+          if reasons.size > 0
+            display = reasons.map { |r| r[:display_name] }.join(", ")
+            report[model] << { field: field, sensitive: true, comment: "suspected to contain: #{display}" }
+          else
+            report[model] << { field: field, sensitive: false }
+          end
         end
       end
 
       File.open(filename, "w") { |file| file.write(report.to_yaml) }
-
-      puts "Assessment written to: #{filename}"
     end
   end
 end

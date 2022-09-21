@@ -39,7 +39,7 @@ if defined?(RSpec)
     end
 
     def encrypted?(model, field_name)
-      model.respond_to?(:encrypted_attributes) && model.encrypted_attributes.kind_of?(Array) && model.encrypted_attributes.include?(field_name)
+      model.respond_to?(:encrypted_attributes) && model.encrypted_attributes.kind_of?(Set) && model.encrypted_attributes.include?(field_name)
     end
 
     # Check if all fields in the model are in the report. We only care if the fields for the

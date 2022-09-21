@@ -39,8 +39,6 @@ if defined?(RSpec)
     end
 
     def encrypted?(model, field_name)
-      # require 'pry'
-      # binding.pry
       model.respond_to?(:encrypted_attributes) && model.encrypted_attributes.kind_of?(Set) && model.encrypted_attributes.include?(field_name)
     end
 

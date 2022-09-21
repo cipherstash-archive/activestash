@@ -34,11 +34,12 @@ module ActiveStash
       def self.check(field_names)
         {}.tap do |matches|
           field_names.each do |field_name|
+            matches[field_name] ||= []
+
             normalized_field_name = field_name.gsub("_", "").singularize
             suspects = RULES.select { |rule| rule[:column_names].include?(normalized_field_name) }
 
             if suspects.size > 0
-              matches[field_name] ||= []
               matches[field_name] << suspects
               matches[field_name].flatten!
             end

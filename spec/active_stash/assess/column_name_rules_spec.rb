@@ -18,6 +18,7 @@ RSpec.describe ActiveStash::Assess::ColumnNameRules do
       ["dob", "dates of birth", "AS0001"],
       ["address", "addresses", "AS0001"],
       ["city", "addresses", "AS0001"],
+      ["suburb", "addresses", "AS0001"],
       ["state", "addresses", "AS0001"],
       ["county", "addresses", "AS0001"],
       ["country", "addresses", "AS0001"],

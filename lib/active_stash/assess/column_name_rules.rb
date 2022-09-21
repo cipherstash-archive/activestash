@@ -13,7 +13,7 @@ module ActiveStash
         { name: 'last_name', display_name: 'names', column_names: %w[name fname firstname lastname lname surname], error_code: ERR_PII },
         { name: 'phone', display_name: 'phone numbers', column_names: %w[phone phonenumber], error_code: ERR_PII },
         { name: 'date_of_birth', display_name: 'dates of birth', column_names: %w[dateofbirth birthday dob], error_code: ERR_PII },
-        { name: 'address', display_name: 'addresses', column_names: %w[address city state county country zip zipcode postalcode postcode postal], error_code: ERR_PII },
+        { name: 'address', display_name: 'addresses', column_names: %w[address city suburb state county country zip zipcode postalcode postcode postal], error_code: ERR_PII },
         { name: 'oauth_token', display_name: 'OAuth tokens', column_names: %w[accesstoken refreshtoken], error_code: ERR_AUTH },
         { name: 'email', display_name: 'emails', column_names: ['email'], error_code: ERR_PII },
         { name: 'ip_address', display_name: 'IP addresses', column_names: %w[ip ipaddress], error_code: ERR_PII },

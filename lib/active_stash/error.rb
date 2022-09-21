@@ -61,4 +61,7 @@ module ActiveStash
 
   # Raised when an assessment file is not found (likely because it has not been generated).
   class AssessmentNotFound < AssessError; end
+
+  # Raised when an assessment file is out of date and needs to be updated.
+  class AssessmentOutdated < AssessError; end
 end

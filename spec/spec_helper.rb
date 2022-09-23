@@ -30,6 +30,9 @@ RSpec.configure do |config|
     # We do not have Rails auto-loaders so we must take care to load models in a sensible order.
     require './spec/support/patient'
     require './spec/support/medicare_card'
+    require './spec/support/assess_user_active_record_encryption'
+    require './spec/support/assess_user_lockbox'
+    require './spec/support/assess_user_no_encryption'
     require './spec/support/user'
     require './spec/support/user2'
     require './spec/support/user3'

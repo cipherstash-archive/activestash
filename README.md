@@ -609,7 +609,7 @@ The `active_stash:assess` Rake task also writes a results file to `active_stash_
 
 ### RSpec matcher
 
-After a report has been generated, you can use the `encrypt_sensitive_fields` RSpec matcher to verify that a model encrypts fields that were reported as sensitive by `rake active_stash:assess`.
+After a report has been generated, you can use the `encrypt_sensitive_fields` RSpec matcher to verify that a model encrypts fields (using either [Lockbox](https://github.com/ankane/lockbox) or [ActiveRecord Encryption](https://guides.rubyonrails.org/active_record_encryption.html)) that were reported as sensitive by `rake active_stash:assess`.
 
 First, make sure that the matcher is required in `spec/rails_helper.rb`:
 ```ruby
@@ -632,8 +632,6 @@ This helps you keep track of what fields you need to encrypt, as you incremental
 As the example above shows, we recommend you start out by marking the test as [pending](https://relishapp.com/rspec/rspec-core/v/3-0/docs/pending-and-skipped-examples).
 This will stop the test from failing while you incrementally encrypt database fields.
 Once you have encrypted all the fields identified by ActiveStash Assess, remove the pending so your tests will fail if the database field becomes unencrypted.
-
-The `encrypt_sensitive_fields` matcher currently verifies that fields have been encrypted using [ActiveRecord Encryption](https://guides.rubyonrails.org/active_record_encryption.html), but support for [Lockbox](https://github.com/ankane/lockbox) is planned.
 
 ## Development
 

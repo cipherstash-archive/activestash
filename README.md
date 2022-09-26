@@ -46,14 +46,14 @@ gem "active_stash"
 2. Install the new dependencies:
 
 ```
-➜  bundle install
+$ bundle install
 ```
 
-3. Sign up for a CipherStash account, and then login with the provided Workspace ID:
+3. Sign up for a CipherStash account, and then log in with the provided Workspace ID:
 
 ```bash
-➜  rake active_stash:signup
-➜  rake active_stash:login[YOURWORKSPACEID]
+$ rake active_stash:signup
+$ rake active_stash:login[YOURWORKSPACEID]
 ```
 
 Note: If you are using `zsh` you may need to escape the brackets
@@ -89,13 +89,22 @@ class User < ApplicationRecord
 end
 ```
 
-6. Reindex your existing data into CipherStash with ActiveStash
+6. Create CipherStash collections for your models
 
-```
-➜  rails active_stash:reindexall
+Each model that uses `ActiveStash::Search` needs to have a [CipherStash collection](https://docs.cipherstash.com/reference/glossary.html#collection).
+
+To create collections for all models that use `ActiveStash::Search`, run:
+```sh
+$ rake active_stash:collections:create
 ```
 
-7. Query a user record:
+7. Reindex your existing data into CipherStash with ActiveStash
+
+```sh
+$ rake active_stash:reindexall
+```
+
+8. Query a user record:
 
 ```bash
 $ rails c
@@ -298,7 +307,9 @@ ActiveStash will create indexes as defined in your models.
 
 All you need to do is create the collection by running:
 
-    rails active_stash:collections:create
+```sh
+$ rake active_stash:collections:create
+```
 
 This command will create collections for all the models you have set up to use ActiveStash.
 
@@ -307,13 +318,13 @@ This command will create collections for all the models you have set up to use A
 To index your encrypted data into CipherStash, use the reindex task:
 
 ```sh
-$ rails active_stash:reindexall
+$ rake active_stash:reindexall
 ```
 
 If you want to just reindex one model, for example `User`, run:
 
 ```sh
-$ rails active_stash:reindex[User]
+$ rake active_stash:reindex[User]
 ```
 
 You can also reindex in code:
@@ -357,9 +368,9 @@ Presently, ActiveStash provides no means to update the schema of a CipherStash c
 If your indexed model is called `User` for example, you should run the following commands:
 
 ```sh
-$ rails active_stash:drop[User]
-$ rails active_stash:create
-$ rails active_stash:reindex[User]
+$ rake active_stash:drop[User]
+$ rake active_stash:collections:create
+$ rake active_stash:reindex[User]
 ```
 
 Support for zero-downtime Collection schema changes and reindexing is being actively worked on and will be available soon.
@@ -497,19 +508,19 @@ ActiveStash provides rake tasks to manage the access keys for your workspace.
 To create a new access key:
 
 ```sh
-rake active_stash:access_key:create[keyname]
+$ rake active_stash:access_key:create[keyname]
 ```
 
 To list all the access keys currently associated with your workspace:
 
 ```sh
-rake active_stash:access_key:list
+$ rake active_stash:access_key:list
 ```
 
 Finally, to delete an access key:
 
 ```sh
-rake active_stash:access_key:delete[keyname]
+$ rake active_stash:access_key:delete[keyname]
 ```
 
 Every access key must have a unique name, so you know what it is used for (and so you don't accidentally delete the wrong one).
@@ -529,7 +540,7 @@ Or via the included Rake task.
 This command takes the name of the _model_ that is attached to the collection.
 
 ```sh
-rake active_stash:collections:drop[User]
+$ rake active_stash:collections:drop[User]
 ```
 
 ### List Stash Enabled Models
@@ -537,7 +548,7 @@ rake active_stash:collections:drop[User]
 A rake task is provided to list all of the models in your application that have been configured to use CipherStash.
 
 ```sh
-rake active_stash:collections:list
+$ rake active_stash:collections:list
 ```
 
 ### Create a Collection
@@ -551,7 +562,7 @@ User.collection.create!
 Or via a Rake task:
 
 ```sh
-rake active_stash:collections:create[User]
+$ rake active_stash:collections:create
 ```
 
 ## Assess
@@ -572,7 +583,7 @@ We recommend you commit this file to your repo, so you can track your progress o
 
 To run an assessment and generate a report, run:
 ``` bash
-rake active_stash:assess
+$ rake active_stash:assess
 ```
 
 This will print results to `stdout` in a human-readable format:
@@ -606,7 +617,7 @@ First, make sure that the matcher is required in `spec/rails_helper.rb`:
 require 'active_stash/matchers'
 ```
 
-Next, add the matcher to the spec for the model that you'd like to test. 
+Next, add the matcher to the spec for the model that you'd like to test.
 The following example verifies that all fields reported as sensitive for the `User` model are encrypted:
 ```ruby
 describe User do
@@ -619,7 +630,7 @@ end
 This helps you keep track of what fields you need to encrypt, as you incrementally roll out Application Level Encryption on your app.
 
 As the example above shows, we recommend you start out by marking the test as [pending](https://relishapp.com/rspec/rspec-core/v/3-0/docs/pending-and-skipped-examples).
-This will stop the test from failing while you incrementally encrypt database fields. 
+This will stop the test from failing while you incrementally encrypt database fields.
 Once you have encrypted all the fields identified by ActiveStash Assess, remove the pending so your tests will fail if the database field becomes unencrypted.
 
 The `encrypt_sensitive_fields` matcher currently verifies that fields have been encrypted using [ActiveRecord Encryption](https://guides.rubyonrails.org/active_record_encryption.html), but support for [Lockbox](https://github.com/ankane/lockbox) is planned.

@@ -8,7 +8,7 @@ module ActiveStash # :nodoc:
   #
   # To index your encrypted data into CipherStash, use the reindex task:
   #
-  #     rails active_stash:reindexall
+  #     rake active_stash:reindexall
   #
   # If you want to just reindex one model, for example `User`, run:
   #

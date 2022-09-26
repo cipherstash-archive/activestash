@@ -175,8 +175,10 @@ namespace :active_stash do
   end
 end
 
-Rake::Task["db:migrate"].enhance do
-  if ActiveStash::Assess.report_exists?
-    Rake::Task["active_stash:assess"].execute({quiet: true})
+if Rake::Task.task_defined?("db:migrate")
+  Rake::Task["db:migrate"].enhance do
+    if ActiveStash::Assess.report_exists?
+      Rake::Task["active_stash:assess"].execute({quiet: true})
+    end
   end
 end

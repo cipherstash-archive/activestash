@@ -129,7 +129,7 @@ namespace :active_stash do
     task :describe, [:name] => :environment do |task, args|
       model = args[:name].constantize
       table = Terminal::Table.new(headings: ["Name", "Type", "Field(s)", "Valid Operators"]) do |t|
-        model.stash_indexes.all.each do |index|
+        model.stash_indexes.indexes.each do |index|
           t << [index.name, index.type, Array(index.field).join(", "), index.valid_ops.join(", ")]
         end
       end

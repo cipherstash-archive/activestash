@@ -24,6 +24,12 @@ end
 namespace :active_stash do
   desc "Assess sensitive data used in a Rails application and generate a report"
   task(:assess, [:quiet] => :environment) do |task, args|
+    if !defined?(Rails)
+      raise ActiveStash::RailsUndefinedError, "ActiveStash Assess can currently only be used in Rails projects"
+    end
+
+    Rails.application.eager_load!
+
     ActiveStash::Assess.new(**args.to_hash).run
   end
 
@@ -177,7 +183,7 @@ end
 
 if Rake::Task.task_defined?("db:migrate")
   Rake::Task["db:migrate"].enhance do
-    if ActiveStash::Assess.report_exists?
+    if ActiveStash::Assess.new.report_exists?
       Rake::Task["active_stash:assess"].execute({quiet: true})
     end
   end

@@ -11,20 +11,23 @@ module ActiveStash
     REPORT_FILE_NAME = "active_stash_assessment.yml"
     DOCS_BASE_URL = "https://docs.cipherstash.com/assess/checks"
 
-    def initialize(quiet: false)
-      if !defined?(Rails)
-        raise RailsUndefinedError, "ActiveStash Assess can currently only be used in Rails projects"
-      end
-
-      Rails.application.eager_load!
-
-      @assessment_path = self.class.assessment_path
+    def initialize(quiet: false, models: default_models, report_dir: Rails.root)
+      @assessment_path = report_dir.join(REPORT_FILE_NAME)
+      @models = models
       @quiet = quiet
+    end
+
+    def default_models
+      if defined?(ApplicationRecord)
+        ApplicationRecord.descendants
+      else
+        []
+      end
     end
 
     # Run an assessment and generate a report. Results are printed to stdout and written to active_stash_assessment.yml.
     def run
-      assessment = models.map { |model| [model.name, suspected_personal_data(model)] }
+      assessment = @models.map { |model| [model.name, suspected_personal_data(model)] }
 
       write_report(assessment, @assessment_path)
 
@@ -53,12 +56,8 @@ module ActiveStash
       end
     end
 
-    def self.assessment_path
-      Rails.root.join(REPORT_FILE_NAME)
-    end
-
-    def self.report_exists?
-      File.exist?(assessment_path)
+    def report_exists?
+      File.exist?(@assessment_path)
     end
 
     private
@@ -81,17 +80,15 @@ module ActiveStash
         .map {|e| e[:error_code] }
         .uniq
 
-      puts "Online documentation:"
-      puts "#{error_codes.map{ |e| "- #{DOCS_BASE_URL}##{e}"}.join("\n")}"
-      puts
+      if error_codes.length > 0
+        puts "Online documentation:"
+        puts "#{error_codes.map{ |e| "- #{DOCS_BASE_URL}##{e}"}.join("\n")}"
+        puts
+      end
     end
 
     def model_fields(model)
       model.column_names
-    end
-
-    def models
-      ApplicationRecord.descendants
     end
 
     def secured_by_active_stash?(fields)

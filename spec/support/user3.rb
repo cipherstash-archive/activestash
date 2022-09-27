@@ -4,7 +4,7 @@ class User3 < ActiveRecord::Base
   include ActiveStash::Search
   include ActiveStash::Validations
   self.table_name = "users3"
-  self.collection_name = "activestash_test_#{ENV["ACTIVE_STASH_TEST_COLLECTION_PREFIX"] || ""}_users"
+  self.collection_name = "activestash_test_#{ENV["ACTIVE_STASH_TEST_COLLECTION_PREFIX"] || ""}_users3"
 
   # Used for testing
   attr_accessor :skip_validations

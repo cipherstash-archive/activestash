@@ -43,6 +43,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 12.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "github-release", "~> 0.2"
+  spec.add_development_dependency "lockbox", "~> 1.0"
 
   spec.files = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*"]
   spec.bindir        = "exe"

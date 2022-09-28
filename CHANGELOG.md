@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.11.0]
+
+### Added
+
+* Add Lockbox support to encrypt_sensitive_fields matcher
+
+### Fixed
+
+* Minor README and doc fixes
+* Fix describe collection task error
+* Fix login rake task re-auth bug by using CipherStash::Client.login
+
+## [0.10.2]
+
+### Fixed
+
+* Assess: check if encrypted attribute is a set not an array
+
+## [0.10.1]
+
+### Fixed
+
+* Assess: Raise error in RSpec matcher when assessment is outdated
+* Assess: Check encrypted attributes is an array
+
+## [0.10.0]
+
+### Added
+
+* New IndexDSL supporting all previous features and also adds the ability to index into associated records
+
 ## [0.9.0]
 
 ### Added

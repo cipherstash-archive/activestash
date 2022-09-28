@@ -81,7 +81,18 @@ namespace :active_stash do
   rescue CipherStash::Client::Error::CreateProfileFailure => ex
     error(ex.message)
   rescue CipherStash::Client::Error::LoadProfileFailure => ex
-    error(ex.message)
+    message = <<~STR
+    Could not log in because a profile could not be loaded.
+
+    If you're logging into a workspace for the first time, make sure that you've provided a workspace
+    and a profile will be created for you.
+
+    Example: `rake active_stash:login[YourWorkspaceHere]`.
+
+    Otherwise, make sure that a profile named "default" exists or that a valid profile name has been
+    provided via the `CS_PROFILE_NAME` env var or the `defaultProfile` opt in `{cs_config_path}/config.json`.
+    STR
+    error(message)
   end
 
   desc "Reindex the CipherStash collection for the given model"

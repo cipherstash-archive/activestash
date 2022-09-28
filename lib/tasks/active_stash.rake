@@ -65,27 +65,42 @@ namespace :active_stash do
     info("")
   end
 
-  desc "Login to stash workspace"
+  desc <<~STR
+  Log into a CipherStash workspace.
+
+  If given a single arg, workspace, a profile will be created for that workspace.
+  This is useful for logging into a workspace for the first time.
+
+  If a workspace is not provided, this command will load an existing profile and
+  then log in using that profile. The profile name defaults to "default", but can
+  be overridden with the `CS_PROFILE_NAME` env var or the `defaultProfile` opt in
+  `{cs_config_path}/config.json`.
+  STR
   task :login, [:workspace] do |task, args|
-    if args[:workspace].nil?
-        error("Please provide a workspace ID.")
-        info("")
-        info("Using bash:")
-        info("")
-        info("rake active_stash:login[YOURWORKSPACEID]")
-        info("")
-        info("Using zsh:")
-        info("")
-        info("rake active_stash:login\\[YOURWORKSPACEID\\]")
-        info("")
-        info("")
-        exit 1
-    end
-    CipherStash::Client::Profile.create(ENV.fetch("CS_PROFILE_NAME", "default"), ActiveStash::Logger.instance, workspace: args[:workspace])
+    CipherStash::Client::login(workspace: args[:workspace], logger: ActiveStash::Logger.instance)
   rescue CipherStash::Client::Error::CreateProfileFailure => ex
     error(ex.message)
   rescue CipherStash::Client::Error::LoadProfileFailure => ex
-    error(ex.message)
+    message = <<~STR
+    Could not log in because a profile could not be loaded.
+
+    If you're logging into a workspace for the first time, make sure that you've provided a workspace
+    and a profile will be created for you.
+
+    Example: 
+    
+    Using bash:
+    
+    `rake active_stash:login[YourWorkspaceHere]`
+    
+    Using zsh:
+    
+    `rake active_stash:login\[YourWorkspaceHere\]`
+
+    Otherwise, make sure that a profile named "default" exists or that a valid profile name has been
+    provided via the `CS_PROFILE_NAME` env var or the `defaultProfile` opt in `{cs_config_path}/config.json`.
+    STR
+    error(message)
   end
 
   desc "Reindex the CipherStash collection for the given model"

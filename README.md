@@ -83,7 +83,9 @@ class User < ApplicationRecord
   encrypts :dob, type: :date
 
   # Fields that will be indexed into CipherStash
-  stash_index :name, :email, :dob
+  stash_index do
+    auto :name, :email, :dob
+  end
 
   self.ignored_columns = %w[name email dob]
 end
@@ -141,7 +143,9 @@ class User < ActiveRecord::Base
   include ActiveStash::Search
 
   # Searchable fields
-  stash_index :name, :email, :dob
+  stash_index do
+    auto :name, :email, :dob
+  end
 
   # fields encrypted with EncryptedRecord
   encrypts :name
@@ -195,13 +199,30 @@ end
 
 ## Index Types
 
-CipherStash supports 3 main types of indexes: `exact`, `range` (allows queries like `<` and `>`)
+CipherStash supports three main types of indexes: `exact`, `range` (allows queries like `<` and `>`)
 and `match` which supports free-text search.
+Additionally, ActiveStash supports `auto` indexes which  automatically determine what kinds of indexes to create based on the underlying data type.
 
-ActiveStash will automatically determine what kinds of indexes to create based on the underlying data-type.
-These are as follows:
+### Auto indexes
 
-### String and Text
+`auto` indexes automatically determine what kinds of indexes to create based on the underlying data type.
+
+The following example of adds an `auto` index to an encrypted `email` field in a model named `User`:
+```ruby
+class User < ActiveRecord::Base
+  include ActiveStash::Search
+
+  encrypts :email
+
+  stash_index do
+    auto :email
+  end
+end
+```
+
+`auto` will create the following indexes for each data type:
+
+#### String and Text
 
 `:string` and `:text` types automatically create the following indexes.
 Range indexes on strings typically only work for ordering.
@@ -212,7 +233,7 @@ Range indexes on strings typically only work for ordering.
 | `exact`         | `==`                       | `User.query(email: "foo@example.com)`  |
 | `range`         | `<`, `<=`, `==`, `>=`, `>` | `User.query.order(:email)`             |
 
-### Numeric Types
+#### Numeric Types
 
 `:timestamp`, `:date`, `:datetime`, `:float`, `:decimal`, and `:integer` types all have `range` indexes created.
 
@@ -220,31 +241,40 @@ Range indexes on strings typically only work for ordering.
 | --------------- | ------------------------------------- | ------------------------------------------- |
 | `range`         | `<`, `<=`, `==`, `>=`, `>`, `between` | `User.query { \|q\| q.dob > 20.years.ago }` |
 
-### Overriding Automatically Created Indexes
+### Using Specific Index Types
 
-If you need finer grained control over what types of indexes are created for a field, you can pass the `:except` or
-`:only` options to `stash_index` (can be a symbol or array).
+ActiveStash provides more specific index methods for when you need finer-grained control over what types of indexes are created for a field.
 
-For example, to on create an `:exact` index for an integer field, you could do:
+These are:
+* `exact`
+* `range`
+* `match`
+* `match_all`
 
+The following example uses each of these index types:
 ```ruby
-stash_index :my_integer, only: :exact
+stash_index do
+  exact :email
+  range :dob
+  match :name
+
+  match_all :email, :name
+end
 ```
 
-To exclude the `:range` from a string type (say if you don't need to order by string), you can do:
+For more information on index types and their options, see the [CipherStash
+docs](https://docs.cipherstash.com/reference/index-types/index.html).
+
+#### Match All Indexes
+
+ActiveStash can create an index across multiple string fields so that you can perform free-text queries across all specified fields at once.
+
+To do so, you can use the `match_all` DSL method and specify the fields that you want to have indexed:
 
 ```ruby
-stash_index :my_string, except: :range
-```
-
-## Match All Indexes
-
-ActiveStash can also create an index across multiple string fields so that you can perform free-text queries across all specified fields at once.
-
-To do so, you can use the `stash_match_all` DSL method and specify the fields that you want to have indexed:
-
-```ruby
-stash_match_all :first_name, :last_name, :email
+stash_index do
+  match_all :first_name, :last_name, :email
+end
 ```
 
 Match all indexes are queryable by passing the query term directly to the `query` method.
@@ -254,49 +284,45 @@ So to search for the term "ruby" across `:first_name`, `:last_name` and `:email`
 User.query("ruby")
 ```
 
-For more information on index types and their options, see the [CipherStash
-docs](https://docs.cipherstash.com/reference/index-types/index.html).
+#### Match Index Filter Options
 
-
-## Match Index Filter Options
-
-You can adjust the parameters of the filters used for match indexes by passing the `filter_term_bits` and/or `filter_size` options to `stash_index` or `stash_match_all`:
+You can adjust the parameters of the filters used for match indexes by passing the `filter_term_bits` and/or `filter_size` options to `match` or `match_all`:
 
 ```ruby
-stash_index :my_string, filter_size: 512, filter_term_bits: 6
-stash_match_all :first_name, :last_name, :email, filter_size: 1024, filter_term_bits: 5
+stash_index do
+  match :my_string, filter_size: 512, filter_term_bits: 6
+  match_all :first_name, :last_name, :email, filter_size: 1024, filter_term_bits: 5
+end
 ```
 
 For more information on filter parameters, see the [CipherStash docs](https://docs.cipherstash.com/reference/index-types/match.html#common-options).
 
 
-## Unique indexes
+#### Unique indexes
 
-ActiveStash supports adding server side unique constraints on fields.
+ActiveStash supports adding server-side unique constraints on fields.
 
-Unique fields can be specified by adding `unique: true`.
+Unique fields can be specified by using the `unique` DSL method in addition to the index type.
 
 In the below example a unique constraint is added to the email field.
 
 ```ruby
-class User < ActiveRecord::Base
-  include ActiveStash::Search
-
-  stash_index :name, :dob
-  stash_index :email, unique: true
-
-  encrypts :name
-  encrypts :email
-  encrypts :dob
+stash_index do
+  exact :email
+  unique :email
 end
 ```
 
-ActiveStash does not support adding unique constraints on `:match` indexes.
+ActiveStash does not support adding unique constraints on `match` indexes.
 
 The below example will result in a `ConfigError` being raised.
 
 ```ruby
-stash_index :email, only: :match, unique: true
+stash_index do
+  match :email
+  # Raises an error because `match` indexes don't support unique constraints
+  unique :email
+end
 ```
 
 
@@ -363,7 +389,8 @@ end
 
 ## Current limitations
 
-Presently, ActiveStash provides no means to update the schema of a CipherStash collection. Therefore if you need to make any changes to the Collection schema itself (by using the `stash_index` or `stash_match_all` helpers) you must drop your collection and recreate it.
+Presently, ActiveStash provides no means to update the schema of a CipherStash collection.
+Therefore, if you need to make any changes to the Collection schema itself (by changing the contents of a  `stash_index` block) you must drop your collection and recreate it.
 
 If your indexed model is called `User` for example, you should run the following commands:
 

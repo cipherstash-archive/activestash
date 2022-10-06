@@ -207,7 +207,7 @@ Additionally, ActiveStash supports `auto` indexes which  automatically determine
 
 `auto` indexes automatically determine what kinds of indexes to create based on the underlying data type.
 
-The following example of adds an `auto` index to an encrypted `email` field in a model named `User`:
+The following example adds an `auto` index to an encrypted `email` field in a model named `User`:
 ```ruby
 class User < ActiveRecord::Base
   include ActiveStash::Search
@@ -390,7 +390,7 @@ end
 ## Current limitations
 
 Presently, ActiveStash provides no means to update the schema of a CipherStash collection.
-Therefore, if you need to make any changes to the Collection schema itself (by changing the contents of a  `stash_index` block) you must drop your collection and recreate it.
+Therefore, if you need to make any changes to the Collection schema itself (by changing the contents of a `stash_index` block) you must drop your collection and recreate it.
 
 If your indexed model is called `User` for example, you should run the following commands:
 

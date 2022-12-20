@@ -63,7 +63,7 @@ module ActiveStash
         "fields" => Array(index.field),
         "tokenFilters" => [
           { "kind" => "downcase" },
-          { "kind" => "ngram", "tokenLength" => 3 }
+          { "kind" => "ngram", "minLength" => 3, "maxLength" => 8}
         ],
         "tokenizer" => { "kind" => "standard" }
       }.tap do |idx|
@@ -121,7 +121,7 @@ module ActiveStash
         "kind" => "dynamic-match",
         "tokenFilters" => [
           { "kind" => "downcase" },
-          { "kind" => "ngram", "tokenLength" => 3 }
+          { "kind" => "ngram", "minLength" => 3, "maxLength" => 8 }
         ],
         "tokenizer" => { "kind" => "standard" }
       }

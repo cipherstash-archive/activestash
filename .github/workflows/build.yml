@@ -35,7 +35,7 @@ jobs:
       - name: "Show unique job ID"
         run: echo ${{ env.ACTIVE_STASH_TEST_COLLECTION_PREFIX }}
       - name: "Install default uri gem version"
-        run: gem install --default -v0.11.0 uri
+        run: gem install --default -v0.12.0 uri
       - name: Run the tests
         run: bundle exec rake spec
   run-specs-against-ruby-client-main:

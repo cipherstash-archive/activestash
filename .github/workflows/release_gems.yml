@@ -23,6 +23,6 @@ jobs:
         run: gem install --default -v0.11.0 uri
       - name: Build+push
         run: |
-          rake gem gem:push
+          bundle exec rake gem gem:push
         env:
           GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}

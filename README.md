@@ -700,7 +700,7 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/cipher
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+ActiveStash is available under the [CipherStash Client Library Licence Agreement](https://raw.githubusercontent.com/cipherstash/activestash/main/LICENSE).
 
 ## Code of Conduct
 
